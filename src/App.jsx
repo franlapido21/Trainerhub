@@ -57,7 +57,7 @@ async function signOut(token) {
 }
 
 const ZONAS = ["Pocitos","Punta Carretas","Carrasco","Malvín","Buceo","Parque Batlle","Cordón","Centro","Palermo","Aguada","Prado","Belvedere","Sayago","Cerro","La Blanqueada","Unión","Peñarol","Paso de la Arena","Ciudad de la Costa","Otros"];
-const ESPECIALIDADES = ["Pérdida de peso","Aumento de masa muscular","Salud y bienestar general","Entrenamiento funcional","Rendimiento deportivo","Running","Entrenamiento híbrido","Otro"];
+const ESPECIALIDADES = ["Pérdida de peso","Aumento de masa muscular","Salud y bienestar general","Entrenamiento funcional","Rendimiento deportivo","Running","Entrenamiento híbrido","Yoga","Pilates","Rehabilitación de lesiones","Adultos mayores","Otro"];
 const MODALIDADES = ["Presencial","Online","Ambos"];
 
 const css = `
@@ -80,13 +80,33 @@ const css = `
   .hero-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
   .hero-title { font-size: clamp(48px, 8vw, 88px); font-weight: 900; line-height: 0.92; letter-spacing: -3px; margin-bottom: 24px; color: white; }
   .hero-title span { color: var(--orange); }
-  .hero-sub { font-size: 18px; color: rgba(255,255,255,0.6); max-width: 520px; line-height: 1.6; margin-bottom: 40px; }
+  .hero-sub { font-size: 18px; color: rgba(255,255,255,0.6); max-width: 560px; line-height: 1.6; margin-bottom: 40px; }
   .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   .btn-lg { padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.2s; }
   .btn-orange { background: var(--orange); color: white; }
   .btn-orange:hover { background: #d44e17; transform: translateY(-1px); }
   .btn-outline { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.25); }
   .btn-outline:hover { background: rgba(255,255,255,0.08); }
+  .how-section { background: white; padding: 80px 24px; }
+  .how-inner { max-width: 1100px; margin: 0 auto; }
+  .section-tag { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange); margin-bottom: 12px; }
+  .section-title { font-size: clamp(28px, 4vw, 42px); font-weight: 800; color: var(--text); margin-bottom: 16px; letter-spacing: -1px; }
+  .section-title span { color: var(--orange); }
+  .section-sub { font-size: 16px; color: var(--gray); max-width: 560px; line-height: 1.6; margin-bottom: 56px; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; }
+  .step { display: flex; flex-direction: column; gap: 16px; }
+  .step-num { width: 48px; height: 48px; border-radius: 12px; background: var(--orange-dim); border: 1px solid rgba(232,86,26,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: var(--orange); }
+  .step-title { font-size: 17px; font-weight: 700; color: var(--text); }
+  .step-desc { font-size: 14px; color: var(--gray); line-height: 1.6; }
+  .why-section { background: var(--navy); padding: 80px 24px; }
+  .why-inner { max-width: 1100px; margin: 0 auto; }
+  .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 48px; }
+  .why-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px; }
+  .why-icon { font-size: 28px; margin-bottom: 14px; }
+  .why-title { font-size: 16px; font-weight: 700; color: white; margin-bottom: 8px; }
+  .why-desc { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+  .cta-section { background: #F3F4F6; padding: 80px 24px; text-align: center; }
+  .cta-inner { max-width: 600px; margin: 0 auto; }
   .page { padding: 80px 24px 40px; max-width: 1200px; margin: 0 auto; }
   .page-header { padding: 32px 0 24px; }
   .page-title { font-size: 28px; font-weight: 800; margin-bottom: 4px; color: var(--text); }
@@ -166,7 +186,7 @@ const css = `
   .loading { display: flex; align-items: center; justify-content: center; padding: 60px; }
   .spinner { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--orange); animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .hero-title { font-size: 42px; letter-spacing: -2px; } .nav { padding: 0 16px; } .form-card { padding: 24px; } }
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .hero-title { font-size: 42px; letter-spacing: -2px; } .nav { padding: 0 16px; } .form-card { padding: 24px; } .steps { grid-template-columns: 1fr; } .why-grid { grid-template-columns: 1fr; } }
 `;
 
 function TrainerCard({ trainer, onClick }) {
@@ -187,7 +207,7 @@ function TrainerCard({ trainer, onClick }) {
           <div className="trainer-meta-row"><span className="trainer-meta-icon">⏱</span>{trainer.experiencia} {trainer.experiencia === 1 ? "año" : "años"} de experiencia</div>
         </div>
         <div className="trainer-card-footer">
-          <span className="price-badge">USD {trainer.precio}/hora</span>
+          <span className="price-badge">${trainer.precio}/hora</span>
           <button className="card-btn card-btn-primary" onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${trainer.whatsapp}`, '_blank'); }}>WhatsApp</button>
         </div>
       </div>
@@ -210,7 +230,7 @@ function TrainerModal({ trainer, onClose }) {
         </div>
         <div className="modal-body">
           <div className="modal-name">{trainer.nombre}{trainer.verificado && <span className="modal-verified">✓ Verificado</span>}</div>
-          <div className="modal-sub">{trainer.modalidad} · {trainer.experiencia} {trainer.experiencia === 1 ? "año" : "años"} de experiencia · USD {trainer.precio}/hora</div>
+          <div className="modal-sub">{trainer.modalidad} · {trainer.experiencia} {trainer.experiencia === 1 ? "año" : "años"} de experiencia · ${trainer.precio}/hora</div>
           <div className="modal-section"><div className="modal-section-title">Sobre mí</div><div className="modal-bio">{trainer.bio}</div></div>
           <div className="modal-section"><div className="modal-section-title">Especialidades</div><div className="trainer-tags">{trainer.especialidades.map(e => <span key={e} className="trainer-tag">{e}</span>)}</div></div>
           <div className="modal-section"><div className="modal-section-title">Zonas</div><div className="trainer-tags">{(Array.isArray(trainer.zona) ? trainer.zona : [trainer.zona]).map(z => <span key={z} className="trainer-tag">{z}</span>)}</div></div>
@@ -227,13 +247,78 @@ function TrainerModal({ trainer, onClose }) {
 
 function HomePage({ setPage }) {
   return (
-    <div className="hero">
-      <div className="hero-tag">Uruguay · Entrenadores verificados</div>
-      <h1 className="hero-title">Tu entrenador<br /><span>ideal.</span></h1>
-      <p className="hero-sub">Cada entrenador en TrainerHub fue entrevistado personalmente. No es un buscador, es una agencia. Encontrá el indicado para vos.</p>
-      <div className="hero-ctas">
-        <button className="btn-lg btn-orange" onClick={() => setPage("buscar")}>Buscar Entrenador</button>
-        <button className="btn-lg btn-outline" onClick={() => setPage("registro-entrenador")}>Soy Entrenador</button>
+    <div>
+      <div className="hero">
+        <div className="hero-tag">Uruguay · Entrenadores verificados</div>
+        <h1 className="hero-title">Tu entrenador<br /><span>ideal.</span></h1>
+        <p className="hero-sub">Conectamos personas con entrenadores personales verificados. Cada perfil fue revisado y aprobado personalmente.</p>
+        <div className="hero-ctas">
+          <button className="btn-lg btn-orange" onClick={() => setPage("buscar")}>Buscar Entrenador</button>
+          <button className="btn-lg btn-outline" onClick={() => setPage("registro-entrenador")}>Soy Entrenador</button>
+        </div>
+      </div>
+
+      <div className="how-section">
+        <div className="how-inner">
+          <div className="section-tag">Cómo funciona</div>
+          <h2 className="section-title">Simple, rápido y <span>efectivo</span></h2>
+          <p className="section-sub">En tres pasos encontrás el entrenador que necesitás o te sumás al equipo como profesional.</p>
+          <div className="steps">
+            <div className="step">
+              <div className="step-num">1</div>
+              <div className="step-title">Explorá los perfiles</div>
+              <div className="step-desc">Filtrá por zona, especialidad, modalidad y encontrá entrenadores que se ajusten a lo que buscás.</div>
+            </div>
+            <div className="step">
+              <div className="step-num">2</div>
+              <div className="step-title">Contactá directo</div>
+              <div className="step-desc">Escribile por WhatsApp al entrenador que te interesa. Sin intermediarios, sin comisiones ocultas.</div>
+            </div>
+            <div className="step">
+              <div className="step-num">3</div>
+              <div className="step-title">Empezá a entrenar</div>
+              <div className="step-desc">Coordiná tu primera sesión y comenzá tu camino hacia tus objetivos con un profesional verificado.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="why-section">
+        <div className="why-inner">
+          <div className="section-tag" style={{color:"var(--orange)"}}>Por qué TrainerHub</div>
+          <h2 className="section-title" style={{color:"white"}}>No somos un buscador.<br />Somos una <span>agencia.</span></h2>
+          <div className="why-grid">
+            <div className="why-card">
+              <div className="why-icon">✅</div>
+              <div className="why-title">Verificación personal</div>
+              <div className="why-desc">Cada entrenador pasa por una entrevista personal antes de aparecer en la plataforma.</div>
+            </div>
+            <div className="why-card">
+              <div className="why-icon">🎯</div>
+              <div className="why-title">Perfiles reales</div>
+              <div className="why-desc">Todos los datos, especialidades y zonas son revisados y actualizados por el equipo TrainerHub.</div>
+            </div>
+            <div className="why-card">
+              <div className="why-icon">💬</div>
+              <div className="why-title">Contacto directo</div>
+              <div className="why-desc">Te conectamos directo con el entrenador por WhatsApp. Sin formularios, sin demoras.</div>
+            </div>
+            <div className="why-card">
+              <div className="why-icon">🇺🇾</div>
+              <div className="why-title">100% uruguayo</div>
+              <div className="why-desc">Pensado para Uruguay, con entrenadores de Montevideo y el interior del país.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="cta-section">
+        <div className="cta-inner">
+          <div className="section-tag">Sumate</div>
+          <h2 className="section-title">¿Sos entrenador <span>personal?</span></h2>
+          <p style={{fontSize:"16px", color:"var(--gray)", marginBottom:"32px", lineHeight:"1.6"}}>Primeros 3 meses gratis. Mostrá tu perfil a cientos de potenciales clientes en Uruguay.</p>
+          <button className="btn-lg btn-orange" onClick={() => setPage("registro-entrenador")}>Quiero sumarme →</button>
+        </div>
       </div>
     </div>
   );
@@ -267,7 +352,7 @@ function BuscarPage({ token }) {
         <div className="filter-group"><label className="filter-label">Zona</label><select className="filter-select" value={filters.zona} onChange={e => setFilter("zona", e.target.value)}><option value="">Todas las zonas</option>{ZONAS.map(z => <option key={z} value={z}>{z}</option>)}</select></div>
         <div className="filter-group"><label className="filter-label">Especialidad</label><select className="filter-select" value={filters.especialidad} onChange={e => setFilter("especialidad", e.target.value)}><option value="">Todas</option>{ESPECIALIDADES.map(e => <option key={e} value={e}>{e}</option>)}</select></div>
         <div className="filter-group"><label className="filter-label">Modalidad</label><select className="filter-select" value={filters.modalidad} onChange={e => setFilter("modalidad", e.target.value)}><option value="">Todas</option>{MODALIDADES.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
-        <div className="filter-group"><label className="filter-label">Precio máx (USD/h)</label><input className="filter-input" type="number" placeholder="Sin límite" value={filters.precio} onChange={e => setFilter("precio", e.target.value)} /></div>
+        <div className="filter-group"><label className="filter-label">Precio máx ($/h)</label><input className="filter-input" type="number" placeholder="Sin límite" value={filters.precio} onChange={e => setFilter("precio", e.target.value)} /></div>
       </div>
       {loading ? <div className="loading"><div className="spinner"></div></div> : filtered.length === 0 ? (
         <div className="empty"><div className="empty-icon">🔍</div><div className="empty-title">No encontramos entrenadores con esos filtros</div><p>Probá ajustando los criterios de búsqueda</p></div>
@@ -281,23 +366,46 @@ function BuscarPage({ token }) {
 
 function RegisterPage({ type }) {
   const isTrainer = type === "entrenador";
-  const [form, setForm] = useState({ nombre: "", edad: "", bio: "", experiencia: "", zonas: [], especialidades: [], modalidad: "", precio: "", whatsapp: "", instagram: "", objetivo: "", precio_max: "" });
+  const [form, setForm] = useState({ nombre: "", edad: "", bio: "", experiencia: "", zonas: [], especialidades: [], modalidad: "", precio: "", whatsapp: "", instagram: "", objetivo: "", otroEspecialidad: "", condicionMedica: "", pais: "Uruguay" });
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const setField = (k, v) => setForm(f => ({...f, [k]: v}));
   const toggleArray = (k, v) => setForm(f => ({ ...f, [k]: f[k].includes(v) ? f[k].filter(x => x !== v) : [...f[k], v] }));
+  const isOnline = form.modalidad === "Online";
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      const especialidadesFinales = isTrainer
+        ? form.especialidades.map(e => e === "Otro" && form.otroEspecialidad ? form.otroEspecialidad : e)
+        : [form.objetivo === "Otro" && form.otroEspecialidad ? form.otroEspecialidad : form.objetivo];
+
       if (isTrainer) {
-        await insertEntrenador({ nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null, bio: form.bio, experiencia: form.experiencia ? parseInt(form.experiencia) : 1, zona: form.zonas, especialidades: form.especialidades, modalidad: form.modalidad, precio: form.precio ? parseInt(form.precio) : null, whatsapp: form.whatsapp, instagram: form.instagram, estado: "pendiente", verificado: false });
+        await insertEntrenador({
+          nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null,
+          bio: form.bio, experiencia: form.experiencia ? parseInt(form.experiencia) : 1,
+          zona: isOnline ? [] : form.zonas,
+          especialidades: especialidadesFinales,
+          modalidad: form.modalidad,
+          precio: form.precio ? parseInt(form.precio) : null,
+          whatsapp: form.whatsapp, instagram: form.instagram,
+          estado: "pendiente", verificado: false
+        });
       } else {
-        await insertCliente({ nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null, modalidad: form.modalidad, zona: form.zonas[0] || null, objetivo: form.objetivo, precio_max: form.precio_max ? parseInt(form.precio_max) : null });
+        await insertCliente({
+          nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null,
+          modalidad: form.modalidad,
+          zona: isOnline ? null : (form.zonas[0] || null),
+          pais: isOnline ? form.pais : "Uruguay",
+          objetivo: form.objetivo === "Otro" && form.otroEspecialidad ? form.otroEspecialidad : form.objetivo,
+          condicion_medica: form.condicionMedica || null,
+        });
       }
       setStatus("success");
     } catch (e) { console.error(e); setStatus("error"); }
     setLoading(false);
   };
+
   return (
     <div className="form-page">
       <div className="form-card">
@@ -311,14 +419,29 @@ function RegisterPage({ type }) {
           {isTrainer && (<>
             <div className="form-group form-grid-full"><label className="form-label">Bio / Descripción</label><textarea className="form-textarea" placeholder="Contanos sobre vos, tu experiencia y tu enfoque..." value={form.bio} onChange={e => setField("bio", e.target.value)} /></div>
             <div className="form-group"><label className="form-label">Años de experiencia</label><input className="form-input" type="number" placeholder="1" value={form.experiencia} onChange={e => setField("experiencia", e.target.value)} /></div>
-            <div className="form-group"><label className="form-label">Precio por hora (USD)</label><input className="form-input" type="number" placeholder="25" value={form.precio} onChange={e => setField("precio", e.target.value)} /></div>
+            <div className="form-group"><label className="form-label">Precio por hora ($UY)</label><input className="form-input" type="number" placeholder="1500" value={form.precio} onChange={e => setField("precio", e.target.value)} /></div>
             <div className="form-group"><label className="form-label">WhatsApp *</label><input className="form-input" placeholder="598 9X XXX XXX" value={form.whatsapp} onChange={e => setField("whatsapp", e.target.value)} /></div>
             <div className="form-group"><label className="form-label">Instagram</label><input className="form-input" placeholder="@usuario" value={form.instagram} onChange={e => setField("instagram", e.target.value)} /></div>
           </>)}
           <div className="form-group form-grid-full"><label className="form-label">Modalidad *</label><div className="form-check-group">{MODALIDADES.map(m => (<label key={m} className="form-check"><input type="radio" name="modalidad" value={m} checked={form.modalidad === m} onChange={() => setField("modalidad", m)} />{m}</label>))}</div></div>
-          <div className="form-group form-grid-full"><label className="form-label">{isTrainer ? "Zonas de trabajo" : "Tu zona"}</label><div className="form-check-group">{ZONAS.map(z => (<label key={z} className="form-check"><input type={isTrainer ? "checkbox" : "radio"} name="zona" checked={isTrainer ? form.zonas.includes(z) : form.zonas[0] === z} onChange={() => isTrainer ? toggleArray("zonas", z) : setField("zonas", [z])} />{z}</label>))}</div></div>
+
+          {!isOnline && (
+            <div className="form-group form-grid-full"><label className="form-label">{isTrainer ? "Zonas de trabajo" : "Tu zona"}</label><div className="form-check-group">{ZONAS.map(z => (<label key={z} className="form-check"><input type={isTrainer ? "checkbox" : "radio"} name="zona" checked={isTrainer ? form.zonas.includes(z) : form.zonas[0] === z} onChange={() => isTrainer ? toggleArray("zonas", z) : setField("zonas", [z])} />{z}</label>))}</div></div>
+          )}
+
+          {isOnline && !isTrainer && (
+            <div className="form-group form-grid-full"><label className="form-label">País</label><input className="form-input" placeholder="Uruguay" value={form.pais} onChange={e => setField("pais", e.target.value)} /></div>
+          )}
+
           <div className="form-group form-grid-full"><label className="form-label">{isTrainer ? "Especialidades *" : "Tu objetivo *"}</label><div className="form-check-group">{ESPECIALIDADES.map(e => (<label key={e} className="form-check"><input type={isTrainer ? "checkbox" : "radio"} name="objetivo" checked={isTrainer ? form.especialidades.includes(e) : form.objetivo === e} onChange={() => isTrainer ? toggleArray("especialidades", e) : setField("objetivo", e)} />{e}</label>))}</div></div>
-          {!isTrainer && <div className="form-group form-grid-full"><label className="form-label">Precio máximo por hora (USD)</label><input className="form-input" type="number" placeholder="Sin límite" value={form.precio_max} onChange={e => setField("precio_max", e.target.value)} /></div>}
+
+          {((isTrainer && form.especialidades.includes("Otro")) || (!isTrainer && form.objetivo === "Otro")) && (
+            <div className="form-group form-grid-full"><label className="form-label">¿Cuál es tu especialidad?</label><input className="form-input" placeholder="Describí tu especialidad..." value={form.otroEspecialidad} onChange={e => setField("otroEspecialidad", e.target.value)} /></div>
+          )}
+
+          {!isTrainer && (
+            <div className="form-group form-grid-full"><label className="form-label">Condición médica o lesiones a tener en cuenta</label><textarea className="form-textarea" style={{minHeight:"80px"}} placeholder="Ej: hernia de disco, rodilla operada, hipertensión... (opcional)" value={form.condicionMedica} onChange={e => setField("condicionMedica", e.target.value)} /></div>
+          )}
         </div>
         <button className="form-submit" onClick={handleSubmit} disabled={loading || !form.nombre || !form.modalidad}>{loading ? "Enviando..." : isTrainer ? "Enviar solicitud →" : "Encontrar mi entrenador →"}</button>
       </div>
@@ -390,7 +513,7 @@ function AdminPage({ token }) {
                   </div>
                   <div style={{flex:1}}>
                     <div style={{fontWeight:"700", fontSize:"15px"}}>{t.nombre}</div>
-                    <div style={{fontSize:"12px", color:"var(--gray)"}}>{t.modalidad} · {Array.isArray(t.zona) ? t.zona.slice(0,2).join(", ") : t.zona} · USD {t.precio}/h</div>
+                    <div style={{fontSize:"12px", color:"var(--gray)"}}>{t.modalidad} · {Array.isArray(t.zona) ? t.zona.slice(0,2).join(", ") : t.zona} · ${t.precio}/h</div>
                     <div style={{fontSize:"12px", color:"var(--gray)"}}>{t.whatsapp} · {t.instagram}</div>
                   </div>
                   <div style={{display:"flex", alignItems:"center", gap:"6px", flexWrap:"wrap", justifyContent:"flex-end"}}>
@@ -422,7 +545,8 @@ function AdminPage({ token }) {
                 <div style={{width:"36px", height:"36px", borderRadius:"50%", background:"#1B2A4A", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:"700", color:"white", fontSize:"14px", flexShrink:0}}>{c.nombre?.charAt(0)}</div>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:"600", fontSize:"14px"}}>{c.nombre}</div>
-                  <div style={{fontSize:"12px", color:"var(--gray)"}}>{c.objetivo} · {c.zona} · {c.modalidad}</div>
+                  <div style={{fontSize:"12px", color:"var(--gray)"}}>{c.objetivo} · {c.zona || c.pais} · {c.modalidad}</div>
+                  {c.condicion_medica && <div style={{fontSize:"12px", color:"#B91C1C"}}>⚠️ {c.condicion_medica}</div>}
                 </div>
                 <div style={{fontSize:"12px", color:"var(--gray)"}}>{new Date(c.created_at).toLocaleDateString("es-UY")}</div>
               </div>
@@ -439,7 +563,7 @@ function AdminPage({ token }) {
                 <div className="form-group"><label className="form-label">Nombre</label><input className="form-input" value={editForm.nombre||""} onChange={e => setEditForm(f=>({...f, nombre:e.target.value}))} /></div>
                 <div className="form-group"><label className="form-label">Edad</label><input className="form-input" type="number" value={editForm.edad||""} onChange={e => setEditForm(f=>({...f, edad:e.target.value}))} /></div>
                 <div className="form-group"><label className="form-label">Experiencia (años)</label><input className="form-input" type="number" value={editForm.experiencia||""} onChange={e => setEditForm(f=>({...f, experiencia:e.target.value}))} /></div>
-                <div className="form-group"><label className="form-label">Precio (USD/h)</label><input className="form-input" type="number" value={editForm.precio||""} onChange={e => setEditForm(f=>({...f, precio:e.target.value}))} /></div>
+                <div className="form-group"><label className="form-label">Precio ($/h)</label><input className="form-input" type="number" value={editForm.precio||""} onChange={e => setEditForm(f=>({...f, precio:e.target.value}))} /></div>
                 <div className="form-group"><label className="form-label">WhatsApp</label><input className="form-input" value={editForm.whatsapp||""} onChange={e => setEditForm(f=>({...f, whatsapp:e.target.value}))} /></div>
                 <div className="form-group"><label className="form-label">Instagram</label><input className="form-input" value={editForm.instagram||""} onChange={e => setEditForm(f=>({...f, instagram:e.target.value}))} /></div>
                 <div className="form-group form-grid-full"><label className="form-label">Bio</label><textarea className="form-textarea" value={editForm.bio||""} onChange={e => setEditForm(f=>({...f, bio:e.target.value}))} /></div>
