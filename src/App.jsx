@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 const SUPABASE_URL = "https://czaatjbchihfraujjciu.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YWF0amJjaGloZnJhdWpqY2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNjg2NjksImV4cCI6MjA5NTY0NDY2OX0.9_32eRFFPkry0GRyFmS7cJz8Z9Knx_uuqK0vQRYsHM0";
@@ -63,17 +63,10 @@ const MODALIDADES = ["Presencial","Online","Ambos"];
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --navy: #0F1D35; --navy2: #1B2A4A; --orange: #E8561A;
-    --orange-dim: rgba(232,86,26,0.1); --orange-mid: rgba(232,86,26,0.3);
-    --white: #FFFFFF; --gray: #6B7280; --lgray: #374151;
-    --border: #E5E7EB; --border-dark: rgba(255,255,255,0.1);
-    --card: #F9FAFB; --card-dark: rgba(255,255,255,0.06);
-    --green: #0F6E56; --green-dim: rgba(15,110,86,0.1); --text: #111827;
-  }
+  :root { --navy: #0F1D35; --navy2: #1B2A4A; --orange: #E8561A; --orange-dim: rgba(232,86,26,0.1); --orange-mid: rgba(232,86,26,0.3); --gray: #6B7280; --lgray: #374151; --border: #E5E7EB; --green: #0F6E56; --green-dim: rgba(15,110,86,0.1); --text: #111827; }
   body { font-family: 'Inter', sans-serif; background: #F3F4F6; color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
   .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--navy); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
-  .nav-logo { font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; cursor: pointer; color: white; }
+  .nav-logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; cursor: pointer; color: white; }
   .nav-logo span { color: var(--orange); }
   .nav-links { display: flex; align-items: center; gap: 8px; }
   .nav-btn { padding: 8px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
@@ -85,9 +78,9 @@ const css = `
   .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(232,86,26,0.12) 0%, transparent 70%); pointer-events: none; }
   .hero-tag { display: inline-flex; align-items: center; gap: 8px; background: rgba(232,86,26,0.15); border: 1px solid rgba(232,86,26,0.3); padding: 6px 16px; border-radius: 40px; font-size: 13px; font-weight: 500; color: var(--orange); margin-bottom: 32px; }
   .hero-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
-  .hero-title { font-family: 'Inter', sans-serif; font-size: clamp(48px, 8vw, 88px); font-weight: 900; line-height: 0.92; letter-spacing: -3px; margin-bottom: 24px; color: white; }
+  .hero-title { font-size: clamp(48px, 8vw, 88px); font-weight: 900; line-height: 0.92; letter-spacing: -3px; margin-bottom: 24px; color: white; }
   .hero-title span { color: var(--orange); }
-  .hero-sub { font-size: 18px; font-weight: 400; color: rgba(255,255,255,0.6); max-width: 520px; line-height: 1.6; margin-bottom: 40px; }
+  .hero-sub { font-size: 18px; color: rgba(255,255,255,0.6); max-width: 520px; line-height: 1.6; margin-bottom: 40px; }
   .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   .btn-lg { padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.2s; }
   .btn-orange { background: var(--orange); color: white; }
@@ -96,23 +89,23 @@ const css = `
   .btn-outline:hover { background: rgba(255,255,255,0.08); }
   .page { padding: 80px 24px 40px; max-width: 1200px; margin: 0 auto; }
   .page-header { padding: 32px 0 24px; }
-  .page-title { font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 4px; color: var(--text); }
+  .page-title { font-size: 28px; font-weight: 800; margin-bottom: 4px; color: var(--text); }
   .page-title span { color: var(--orange); }
   .page-sub { font-size: 15px; color: var(--gray); }
   .filters { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
   .filter-group { display: flex; flex-direction: column; gap: 6px; }
   .filter-label { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--gray); }
-  .filter-select, .filter-input { background: #F9FAFB; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 14px; color: var(--text); font-family: 'Inter', sans-serif; cursor: pointer; outline: none; transition: border-color 0.15s; appearance: none; -webkit-appearance: none; }
+  .filter-select, .filter-input { background: #F9FAFB; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 14px; color: var(--text); font-family: 'Inter', sans-serif; cursor: pointer; outline: none; transition: border-color 0.15s; appearance: none; }
   .filter-select:focus, .filter-input:focus { border-color: var(--orange); }
   .trainers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
   .trainer-card { background: white; border: 1.5px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.2s; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
   .trainer-card:hover { border-color: var(--orange-mid); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
-  .trainer-card-img { width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, var(--navy2), var(--navy)); display: flex; align-items: center; justify-content: center; position: relative; }
-  .trainer-card-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; font-size: 32px; font-weight: 800; color: white; }
+  .trainer-card-img { width: 100%; height: 200px; background: linear-gradient(135deg, var(--navy2), var(--navy)); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .trainer-card-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; color: white; }
   .trainer-card-img img { width: 100%; height: 100%; object-fit: cover; }
   .verified-badge { position: absolute; top: 12px; right: 12px; background: rgba(15,29,53,0.85); border: 1px solid rgba(232,86,26,0.4); border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 600; color: var(--orange); }
   .trainer-card-body { padding: 20px; }
-  .trainer-card-name { font-family: 'Inter', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .trainer-card-name { font-size: 17px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
   .trainer-card-bio { font-size: 13px; color: var(--gray); line-height: 1.5; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .trainer-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
   .trainer-tag { background: var(--orange-dim); border: 1px solid rgba(232,86,26,0.2); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 500; color: var(--orange); }
@@ -124,16 +117,16 @@ const css = `
   .card-btn-primary { background: var(--orange); color: white; }
   .card-btn-primary:hover { background: #d44e17; }
   .card-btn-secondary { background: transparent; color: var(--lgray); border: 1.5px solid var(--border); }
-  .card-btn-secondary:hover { background: var(--card); color: var(--text); }
+  .card-btn-secondary:hover { background: #F9FAFB; }
   .modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 20px; }
   .modal { background: white; border: 1px solid var(--border); border-radius: 20px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.2); }
   .modal-header { height: 200px; position: relative; background: linear-gradient(135deg, var(--navy2), var(--navy)); overflow: hidden; border-radius: 20px 20px 0 0; display: flex; align-items: center; justify-content: center; }
   .modal-header img { width: 100%; height: 100%; object-fit: cover; }
   .modal-avatar-wrap { position: absolute; bottom: -40px; left: 28px; }
-  .modal-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid white; background: var(--orange); display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 800; color: white; overflow: hidden; }
+  .modal-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid white; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: white; overflow: hidden; }
   .modal-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .modal-body { padding: 52px 28px 28px; }
-  .modal-name { font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 4px; color: var(--text); display: flex; align-items: center; gap: 10px; }
+  .modal-name { font-size: 22px; font-weight: 800; margin-bottom: 4px; color: var(--text); display: flex; align-items: center; gap: 10px; }
   .modal-verified { font-size: 12px; color: var(--orange); font-weight: 600; }
   .modal-sub { font-size: 14px; color: var(--gray); margin-bottom: 20px; }
   .modal-section { margin-bottom: 20px; }
@@ -143,14 +136,14 @@ const css = `
   .modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%; background: rgba(0,0,0,0.4); border: none; color: white; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
   .form-page { min-height: 100vh; padding: 80px 24px 40px; display: flex; align-items: flex-start; justify-content: center; background: #F3F4F6; }
   .form-card { background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 40px; max-width: 600px; width: 100%; box-shadow: 0 4px 16px rgba(0,0,0,0.08); margin-top: 20px; }
-  .form-title { font-family: 'Inter', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 6px; color: var(--text); }
+  .form-title { font-size: 26px; font-weight: 800; margin-bottom: 6px; color: var(--text); }
   .form-title span { color: var(--orange); }
   .form-sub { font-size: 14px; color: var(--gray); margin-bottom: 32px; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .form-grid-full { grid-column: 1 / -1; }
   .form-group { display: flex; flex-direction: column; gap: 6px; }
   .form-label { font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gray); }
-  .form-input, .form-select, .form-textarea { background: #F9FAFB; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: var(--text); font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.15s; appearance: none; -webkit-appearance: none; }
+  .form-input, .form-select, .form-textarea { background: #F9FAFB; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: var(--text); font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.15s; appearance: none; }
   .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--orange); background: white; }
   .form-textarea { resize: vertical; min-height: 100px; }
   .form-check-group { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -160,21 +153,9 @@ const css = `
   .form-submit { width: 100%; padding: 14px; border-radius: 10px; background: var(--orange); color: white; font-size: 16px; font-weight: 700; cursor: pointer; border: none; font-family: 'Inter', sans-serif; margin-top: 24px; transition: background 0.15s; }
   .form-submit:hover { background: #d44e17; }
   .form-submit:disabled { background: #D1D5DB; cursor: not-allowed; }
-  .match-section { max-width: 800px; margin: 0 auto; padding: 100px 24px 40px; }
-  .match-title { font-family: 'Inter', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 8px; color: var(--text); }
-  .match-title span { color: var(--orange); }
-  .match-sub { font-size: 16px; color: var(--gray); margin-bottom: 40px; }
-  .match-results { display: flex; flex-direction: column; gap: 14px; }
-  .match-card { background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 20px; display: flex; gap: 16px; align-items: center; transition: all 0.2s; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-  .match-card:hover { border-color: var(--orange-mid); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
-  .match-score { width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0; background: var(--orange-dim); border: 2px solid var(--orange); display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 800; color: var(--orange); }
-  .match-info { flex: 1; }
-  .match-name { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
-  .match-detail { font-size: 13px; color: var(--gray); }
-  .match-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
   .empty { text-align: center; padding: 80px 20px; color: var(--gray); }
   .empty-icon { font-size: 48px; margin-bottom: 16px; }
-  .empty-title { font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 700; color: var(--lgray); margin-bottom: 8px; }
+  .empty-title { font-size: 20px; font-weight: 700; color: var(--lgray); margin-bottom: 8px; }
   .alert { padding: 12px 16px; border-radius: 10px; font-size: 14px; margin-bottom: 16px; }
   .alert-success { background: rgba(15,110,86,0.08); border: 1.5px solid rgba(15,110,86,0.3); color: #065F46; }
   .alert-error { background: rgba(220,38,38,0.08); border: 1.5px solid rgba(220,38,38,0.25); color: #B91C1C; }
@@ -187,19 +168,6 @@ const css = `
   @keyframes spin { to { transform: rotate(360deg); } }
   @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .hero-title { font-size: 42px; letter-spacing: -2px; } .nav { padding: 0 16px; } .form-card { padding: 24px; } }
 `;
-
-function matchTrainers(trainers, cliente) {
-  return trainers.map(t => {
-    let score = 0;
-    if (cliente.modalidad === "Sin preferencia" || t.modalidad === "Ambos" || t.modalidad === cliente.modalidad) score += 20;
-    if (cliente.modalidad !== "Online") { if (t.zona.includes(cliente.zona)) score += 30; } else score += 30;
-    if (t.especialidades.includes(cliente.objetivo)) score += 35;
-    else if (t.especialidades.some(e => e.toLowerCase().includes(cliente.objetivo?.toLowerCase()?.split(" ")[0]))) score += 15;
-    if (cliente.precio_max && t.precio <= parseInt(cliente.precio_max)) score += 15;
-    else if (!cliente.precio_max) score += 15;
-    return { ...t, score };
-  }).filter(t => t.score > 0).sort((a, b) => b.score - a.score);
-}
 
 function TrainerCard({ trainer, onClick }) {
   const initial = trainer.nombre.charAt(0).toUpperCase();
@@ -237,9 +205,7 @@ function TrainerModal({ trainer, onClose }) {
           {trainer.foto_url && <img src={trainer.foto_url} alt={trainer.nombre} />}
           <button className="modal-close" onClick={onClose}>✕</button>
           <div className="modal-avatar-wrap">
-            <div className="modal-avatar">
-              {trainer.foto_url ? <img src={trainer.foto_url} alt="" /> : initial}
-            </div>
+            <div className="modal-avatar">{trainer.foto_url ? <img src={trainer.foto_url} alt="" /> : initial}</div>
           </div>
         </div>
         <div className="modal-body">
@@ -251,7 +217,7 @@ function TrainerModal({ trainer, onClose }) {
           {trainer.instagram && <div className="modal-section"><div className="modal-section-title">Instagram</div><div style={{color:"var(--orange)", fontSize:"14px"}}>{trainer.instagram}</div></div>}
           <div className="modal-actions">
             <button className="btn-lg btn-orange" style={{flex:1}} onClick={() => window.open(`https://wa.me/${trainer.whatsapp}`, '_blank')}>Contactar por WhatsApp</button>
-            {trainer.instagram && <button className="btn-lg btn-outline" onClick={() => window.open(`https://instagram.com/${trainer.instagram.replace('@','')}`, '_blank')}>Instagram</button>}
+            {trainer.instagram && <button className="btn-lg btn-outline" style={{color:"var(--text)", borderColor:"var(--border)"}} onClick={() => window.open(`https://instagram.com/${trainer.instagram.replace('@','')}`, '_blank')}>Instagram</button>}
           </div>
         </div>
       </div>
@@ -279,14 +245,9 @@ function BuscarPage({ token }) {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [filters, setFilters] = useState({ zona: "", especialidad: "", modalidad: "", precio: "" });
-
   useEffect(() => {
-    getEntrenadores(token).then(data => {
-      const d = data || [];
-      setTrainers(d); setFiltered(d);
-    }).catch(console.error).finally(() => setLoading(false));
+    getEntrenadores(token).then(data => { const d = data || []; setTrainers(d); setFiltered(d); }).catch(console.error).finally(() => setLoading(false));
   }, [token]);
-
   useEffect(() => {
     let result = trainers;
     if (filters.zona) result = result.filter(t => Array.isArray(t.zona) ? t.zona.includes(filters.zona) : t.zona === filters.zona);
@@ -295,9 +256,7 @@ function BuscarPage({ token }) {
     if (filters.precio) result = result.filter(t => t.precio <= parseInt(filters.precio));
     setFiltered(result);
   }, [filters, trainers]);
-
   const setFilter = (key, val) => setFilters(f => ({...f, [key]: val}));
-
   return (
     <div className="page">
       <div className="page-header">
@@ -320,104 +279,48 @@ function BuscarPage({ token }) {
   );
 }
 
-function MatchPage({ token }) {
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState({ nombre: "", edad: "", modalidad: "", zona: "", objetivo: "", precio_max: "" });
-  const [results, setResults] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [trainers, setTrainers] = useState([]);
-
-  useEffect(() => {
-    getEntrenadores(token).then(data => setTrainers(data || [])).catch(console.error);
-  }, [token]);
-
-  const setField = (k, v) => setForm(f => ({...f, [k]: v}));
-  const handleMatch = () => { setResults(matchTrainers(trainers, form)); setStep(2); };
-
-  return (
-    <div className="match-section">
-      {step === 1 && (<>
-        <h1 className="match-title">Encontrá tu entrenador <span>ideal</span></h1>
-        <p className="match-sub">Contanos qué buscás y te mostramos los entrenadores que mejor encajan con vos.</p>
-        <div style={{background:"rgba(255,255,255,0.03)", border:"1px solid var(--border)", borderRadius:"16px", padding:"32px"}}>
-          <div className="form-grid">
-            <div className="form-group"><label className="form-label">Tu nombre</label><input className="form-input" placeholder="¿Cómo te llamás?" value={form.nombre} onChange={e => setField("nombre", e.target.value)} /></div>
-            <div className="form-group"><label className="form-label">Edad</label><input className="form-input" type="number" placeholder="Años" value={form.edad} onChange={e => setField("edad", e.target.value)} /></div>
-            <div className="form-group"><label className="form-label">Modalidad preferida</label><select className="form-select" value={form.modalidad} onChange={e => setField("modalidad", e.target.value)}><option value="">Seleccioná</option><option value="Sin preferencia">Sin preferencia</option>{MODALIDADES.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
-            <div className="form-group"><label className="form-label">Tu zona</label><select className="form-select" value={form.zona} onChange={e => setField("zona", e.target.value)}><option value="">Seleccioná</option>{ZONAS.map(z => <option key={z} value={z}>{z}</option>)}</select></div>
-            <div className="form-group form-grid-full"><label className="form-label">¿Cuál es tu objetivo?</label><select className="form-select" value={form.objetivo} onChange={e => setField("objetivo", e.target.value)}><option value="">Seleccioná tu objetivo</option>{ESPECIALIDADES.map(e => <option key={e} value={e}>{e}</option>)}</select></div>
-            <div className="form-group form-grid-full"><label className="form-label">Precio máximo por hora (USD)</label><input className="form-input" type="number" placeholder="Sin límite" value={form.precio_max} onChange={e => setField("precio_max", e.target.value)} /></div>
-          </div>
-          <button className="form-submit" onClick={handleMatch} disabled={!form.objetivo}>Encontrar mi entrenador →</button>
-        </div>
-      </>)}
-      {step === 2 && (<>
-        <h1 className="match-title">Tu <span>match</span></h1>
-        <p className="match-sub">{results.length > 0 ? `Encontramos ${results.length} entrenadores que encajan con lo que buscás.` : "No encontramos entrenadores exactos."}</p>
-        {results.length === 0 ? <div className="empty"><div className="empty-icon">🤔</div><div className="empty-title">Sin resultados exactos</div></div> : (
-          <div className="match-results">{results.map((t, i) => (
-            <div key={t.id} className="match-card" onClick={() => setSelected(t)}>
-              <div className="match-score">{t.score}%</div>
-              <div className="match-info">
-                <div className="match-name">{t.nombre} {i === 0 && "⭐"}</div>
-                <div className="match-detail">{t.modalidad} · {Array.isArray(t.zona) ? t.zona.slice(0,2).join(", ") : t.zona} · USD {t.precio}/h</div>
-                <div className="match-tags">{t.especialidades.map(e => <span key={e} className="trainer-tag">{e}</span>)}</div>
-              </div>
-              <button className="card-btn card-btn-primary" style={{width:"120px", flexShrink:0}} onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${t.whatsapp}`, '_blank'); }}>Contactar</button>
-            </div>
-          ))}</div>
-        )}
-        <button className="btn-lg btn-outline" style={{marginTop:"24px", color:"var(--text)", borderColor:"var(--border)"}} onClick={() => setStep(1)}>← Buscar de nuevo</button>
-      </>)}
-      {selected && <TrainerModal trainer={selected} onClose={() => setSelected(null)} />}
-    </div>
-  );
-}
-
 function RegisterPage({ type }) {
   const isTrainer = type === "entrenador";
-  const [form, setForm] = useState({ nombre: "", edad: "", bio: "", experiencia: "", zonas: [], especialidades: [], modalidad: "", precio: "", whatsapp: "", instagram: "", objetivo: "" });
+  const [form, setForm] = useState({ nombre: "", edad: "", bio: "", experiencia: "", zonas: [], especialidades: [], modalidad: "", precio: "", whatsapp: "", instagram: "", objetivo: "", precio_max: "" });
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const setField = (k, v) => setForm(f => ({...f, [k]: v}));
   const toggleArray = (k, v) => setForm(f => ({ ...f, [k]: f[k].includes(v) ? f[k].filter(x => x !== v) : [...f[k], v] }));
-
   const handleSubmit = async () => {
     setLoading(true);
     try {
       if (isTrainer) {
         await insertEntrenador({ nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null, bio: form.bio, experiencia: form.experiencia ? parseInt(form.experiencia) : 1, zona: form.zonas, especialidades: form.especialidades, modalidad: form.modalidad, precio: form.precio ? parseInt(form.precio) : null, whatsapp: form.whatsapp, instagram: form.instagram, estado: "pendiente", verificado: false });
       } else {
-        await insertCliente({ nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null, modalidad: form.modalidad, zona: form.zonas[0] || null, objetivo: form.objetivo, precio_max: form.precio ? parseInt(form.precio) : null });
+        await insertCliente({ nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null, modalidad: form.modalidad, zona: form.zonas[0] || null, objetivo: form.objetivo, precio_max: form.precio_max ? parseInt(form.precio_max) : null });
       }
       setStatus("success");
     } catch (e) { console.error(e); setStatus("error"); }
     setLoading(false);
   };
-
   return (
     <div className="form-page">
       <div className="form-card">
-        <h2 className="form-title">{isTrainer ? <>Registrate como <span>Entrenador</span></> : <>Encontrá tu <span>Entrenador</span></>}</h2>
-        <p className="form-sub">{isTrainer ? "Completá tu perfil para ser parte del equipo TrainerHub. Primeros 3 meses gratis." : "Registrate para conectar con entrenadores verificados."}</p>
-        {status === "success" && <div className="alert alert-success">{isTrainer ? "¡Registro enviado! Fran te va a contactar pronto para la entrevista." : "¡Registro exitoso! En breve te contactamos con tu match."}</div>}
+        <h2 className="form-title">{isTrainer ? <>Registrate como <span>Entrenador</span></> : <>Quiero <span>Entrenar</span></>}</h2>
+        <p className="form-sub">{isTrainer ? "Completá tu perfil para ser parte del equipo TrainerHub. Primeros 3 meses gratis." : "Completá tus datos y te conectamos con el entrenador ideal para vos."}</p>
+        {status === "success" && <div className="alert alert-success">{isTrainer ? "¡Registro enviado! Fran te va a contactar pronto para la entrevista." : "¡Listo! En breve te contactamos con tu entrenador ideal."}</div>}
         {status === "error" && <div className="alert alert-error">Hubo un error. Intentá de nuevo.</div>}
         <div className="form-grid">
           <div className="form-group"><label className="form-label">Nombre completo *</label><input className="form-input" placeholder="Tu nombre" value={form.nombre} onChange={e => setField("nombre", e.target.value)} /></div>
           <div className="form-group"><label className="form-label">Edad</label><input className="form-input" type="number" placeholder="Años" value={form.edad} onChange={e => setField("edad", e.target.value)} /></div>
           {isTrainer && (<>
-            <div className="form-group form-grid-full"><label className="form-label">Bio / Descripción</label><textarea className="form-textarea" placeholder="Contanos sobre vos..." value={form.bio} onChange={e => setField("bio", e.target.value)} /></div>
+            <div className="form-group form-grid-full"><label className="form-label">Bio / Descripción</label><textarea className="form-textarea" placeholder="Contanos sobre vos, tu experiencia y tu enfoque..." value={form.bio} onChange={e => setField("bio", e.target.value)} /></div>
             <div className="form-group"><label className="form-label">Años de experiencia</label><input className="form-input" type="number" placeholder="1" value={form.experiencia} onChange={e => setField("experiencia", e.target.value)} /></div>
             <div className="form-group"><label className="form-label">Precio por hora (USD)</label><input className="form-input" type="number" placeholder="25" value={form.precio} onChange={e => setField("precio", e.target.value)} /></div>
             <div className="form-group"><label className="form-label">WhatsApp *</label><input className="form-input" placeholder="598 9X XXX XXX" value={form.whatsapp} onChange={e => setField("whatsapp", e.target.value)} /></div>
             <div className="form-group"><label className="form-label">Instagram</label><input className="form-input" placeholder="@usuario" value={form.instagram} onChange={e => setField("instagram", e.target.value)} /></div>
           </>)}
           <div className="form-group form-grid-full"><label className="form-label">Modalidad *</label><div className="form-check-group">{MODALIDADES.map(m => (<label key={m} className="form-check"><input type="radio" name="modalidad" value={m} checked={form.modalidad === m} onChange={() => setField("modalidad", m)} />{m}</label>))}</div></div>
-          <div className="form-group form-grid-full"><label className="form-label">Zonas de trabajo</label><div className="form-check-group">{ZONAS.map(z => (<label key={z} className="form-check"><input type="checkbox" checked={form.zonas.includes(z)} onChange={() => toggleArray("zonas", z)} />{z}</label>))}</div></div>
-          <div className="form-group form-grid-full"><label className="form-label">{isTrainer ? "Especialidades" : "Tu objetivo"} *</label><div className="form-check-group">{ESPECIALIDADES.map(e => (<label key={e} className="form-check"><input type={isTrainer ? "checkbox" : "radio"} name="objetivo" checked={isTrainer ? form.especialidades.includes(e) : form.objetivo === e} onChange={() => isTrainer ? toggleArray("especialidades", e) : setField("objetivo", e)} />{e}</label>))}</div></div>
-          {!isTrainer && <div className="form-group form-grid-full"><label className="form-label">Precio máximo por hora (USD)</label><input className="form-input" type="number" placeholder="Sin límite" value={form.precio} onChange={e => setField("precio", e.target.value)} /></div>}
+          <div className="form-group form-grid-full"><label className="form-label">{isTrainer ? "Zonas de trabajo" : "Tu zona"}</label><div className="form-check-group">{ZONAS.map(z => (<label key={z} className="form-check"><input type={isTrainer ? "checkbox" : "radio"} name="zona" checked={isTrainer ? form.zonas.includes(z) : form.zonas[0] === z} onChange={() => isTrainer ? toggleArray("zonas", z) : setField("zonas", [z])} />{z}</label>))}</div></div>
+          <div className="form-group form-grid-full"><label className="form-label">{isTrainer ? "Especialidades *" : "Tu objetivo *"}</label><div className="form-check-group">{ESPECIALIDADES.map(e => (<label key={e} className="form-check"><input type={isTrainer ? "checkbox" : "radio"} name="objetivo" checked={isTrainer ? form.especialidades.includes(e) : form.objetivo === e} onChange={() => isTrainer ? toggleArray("especialidades", e) : setField("objetivo", e)} />{e}</label>))}</div></div>
+          {!isTrainer && <div className="form-group form-grid-full"><label className="form-label">Precio máximo por hora (USD)</label><input className="form-input" type="number" placeholder="Sin límite" value={form.precio_max} onChange={e => setField("precio_max", e.target.value)} /></div>}
         </div>
-        <button className="form-submit" onClick={handleSubmit} disabled={loading || !form.nombre || !form.modalidad}>{loading ? "Enviando..." : isTrainer ? "Enviar solicitud →" : "Registrarme →"}</button>
+        <button className="form-submit" onClick={handleSubmit} disabled={loading || !form.nombre || !form.modalidad}>{loading ? "Enviando..." : isTrainer ? "Enviar solicitud →" : "Encontrar mi entrenador →"}</button>
       </div>
     </div>
   );
@@ -432,48 +335,28 @@ function AdminPage({ token }) {
   const [photoUrl, setPhotoUrl] = useState("");
   const [editingTrainer, setEditingTrainer] = useState(null);
   const [editForm, setEditForm] = useState({});
-
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [t, c] = await Promise.all([getAllEntrenadores(token), getClientes(token)]);
-        setTrainers(t || []); setClients(c || []);
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    };
-    load();
+    Promise.all([getAllEntrenadores(token), getClientes(token)])
+      .then(([t, c]) => { setTrainers(t || []); setClients(c || []); })
+      .catch(console.error).finally(() => setLoading(false));
   }, [token]);
-
   const handleUpdate = async (id, data) => {
     try {
       await updateEntrenador(id, data, token);
       setTrainers(prev => prev.map(t => t.id === id ? { ...t, ...data } : t));
     } catch (e) { alert("Error: " + e.message); }
   };
-
-  const handleSavePhoto = async (id) => {
-    await handleUpdate(id, { foto_url: photoUrl });
-    setEditingPhoto(null); setPhotoUrl("");
-  };
-
+  const handleSavePhoto = async (id) => { await handleUpdate(id, { foto_url: photoUrl }); setEditingPhoto(null); setPhotoUrl(""); };
   const handleSaveEdit = async () => {
-    await handleUpdate(editingTrainer.id, {
-      nombre: editForm.nombre, bio: editForm.bio,
-      edad: parseInt(editForm.edad), experiencia: parseInt(editForm.experiencia),
-      zona: editForm.zona, especialidades: editForm.especialidades,
-      modalidad: editForm.modalidad, precio: parseInt(editForm.precio),
-      whatsapp: editForm.whatsapp, instagram: editForm.instagram,
-    });
+    await handleUpdate(editingTrainer.id, { nombre: editForm.nombre, bio: editForm.bio, edad: parseInt(editForm.edad), experiencia: parseInt(editForm.experiencia), zona: editForm.zona, especialidades: editForm.especialidades, modalidad: editForm.modalidad, precio: parseInt(editForm.precio), whatsapp: editForm.whatsapp, instagram: editForm.instagram });
     setEditingTrainer(null);
   };
-
   const filtered = trainers.filter(t => {
     if (tab === "pendientes") return t.estado === "pendiente";
     if (tab === "aprobados") return t.estado === "aprobado";
     if (tab === "rechazados") return t.estado === "rechazado";
     return true;
   });
-
   return (
     <div className="page">
       <div className="page-header">
@@ -482,13 +365,12 @@ function AdminPage({ token }) {
       </div>
       <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"12px", marginBottom:"28px"}}>
         {[{label:"Pendientes", val:trainers.filter(t=>t.estado==="pendiente").length, color:"#F59E0B"},{label:"Aprobados", val:trainers.filter(t=>t.estado==="aprobado").length, color:"var(--green)"},{label:"Clientes", val:clients.length, color:"var(--orange)"}].map(s => (
-          <div key={s.label} style={{background:"white", border:"1.5px solid var(--border)", borderRadius:"12px", padding:"20px", boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
+          <div key={s.label} style={{background:"white", border:"1.5px solid var(--border)", borderRadius:"12px", padding:"20px"}}>
             <div style={{fontSize:"32px", fontWeight:"800", color:s.color, fontFamily:"Inter"}}>{s.val}</div>
             <div style={{fontSize:"13px", color:"var(--gray)", marginTop:"4px"}}>{s.label}</div>
           </div>
         ))}
       </div>
-
       <div style={{background:"white", border:"1.5px solid var(--border)", borderRadius:"16px", padding:"24px", marginBottom:"24px"}}>
         <h2 style={{fontSize:"16px", fontWeight:"700", marginBottom:"16px"}}>Entrenadores</h2>
         <div className="tabs">
@@ -507,7 +389,7 @@ function AdminPage({ token }) {
                     {t.foto_url ? <img src={t.foto_url} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}} /> : t.nombre?.charAt(0)}
                   </div>
                   <div style={{flex:1}}>
-                    <div style={{fontWeight:"700", fontSize:"15px", color:"var(--text)"}}>{t.nombre}</div>
+                    <div style={{fontWeight:"700", fontSize:"15px"}}>{t.nombre}</div>
                     <div style={{fontSize:"12px", color:"var(--gray)"}}>{t.modalidad} · {Array.isArray(t.zona) ? t.zona.slice(0,2).join(", ") : t.zona} · USD {t.precio}/h</div>
                     <div style={{fontSize:"12px", color:"var(--gray)"}}>{t.whatsapp} · {t.instagram}</div>
                   </div>
@@ -516,7 +398,7 @@ function AdminPage({ token }) {
                     <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => { setEditingPhoto(t.id); setPhotoUrl(t.foto_url || ""); }}>📷 Foto</button>
                     <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => { setEditingTrainer(t); setEditForm({...t}); }}>✏️ Editar</button>
                     {t.estado !== "aprobado" && <button className="card-btn card-btn-primary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => handleUpdate(t.id, {estado:"aprobado", verificado:true})}>Aprobar</button>}
-                    {t.estado !== "rechazado" && <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => handleUpdate(t.id, {estado:"rechazado", verificado:false})}>Rechazar</button>}
+                    <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none", color:"#B91C1C", borderColor:"rgba(220,38,38,0.3)"}} onClick={() => handleUpdate(t.id, {estado:"rechazado", verificado:false})}>Rechazar</button>
                   </div>
                 </div>
                 {editingPhoto === t.id && (
@@ -531,7 +413,6 @@ function AdminPage({ token }) {
           </div>
         )}
       </div>
-
       <div style={{background:"white", border:"1.5px solid var(--border)", borderRadius:"16px", padding:"24px"}}>
         <h2 style={{fontSize:"16px", fontWeight:"700", marginBottom:"16px"}}>Clientes registrados</h2>
         {clients.length === 0 ? <div style={{color:"var(--gray)", fontSize:"14px"}}>Sin clientes todavía</div> : (
@@ -549,12 +430,11 @@ function AdminPage({ token }) {
           </div>
         )}
       </div>
-
       {editingTrainer && (
         <div className="modal-overlay" onClick={() => setEditingTrainer(null)}>
           <div className="modal" style={{maxWidth:"700px"}} onClick={e => e.stopPropagation()}>
             <div className="modal-body" style={{paddingTop:"32px"}}>
-              <div className="modal-name" style={{marginBottom:"20px"}}>Editar perfil — {editingTrainer.nombre}</div>
+              <div className="modal-name" style={{marginBottom:"20px"}}>Editar — {editingTrainer.nombre}</div>
               <div className="form-grid">
                 <div className="form-group"><label className="form-label">Nombre</label><input className="form-input" value={editForm.nombre||""} onChange={e => setEditForm(f=>({...f, nombre:e.target.value}))} /></div>
                 <div className="form-group"><label className="form-label">Edad</label><input className="form-input" type="number" value={editForm.edad||""} onChange={e => setEditForm(f=>({...f, edad:e.target.value}))} /></div>
@@ -564,12 +444,12 @@ function AdminPage({ token }) {
                 <div className="form-group"><label className="form-label">Instagram</label><input className="form-input" value={editForm.instagram||""} onChange={e => setEditForm(f=>({...f, instagram:e.target.value}))} /></div>
                 <div className="form-group form-grid-full"><label className="form-label">Bio</label><textarea className="form-textarea" value={editForm.bio||""} onChange={e => setEditForm(f=>({...f, bio:e.target.value}))} /></div>
                 <div className="form-group form-grid-full"><label className="form-label">Modalidad</label><div className="form-check-group">{MODALIDADES.map(m => (<label key={m} className="form-check"><input type="radio" checked={editForm.modalidad===m} onChange={() => setEditForm(f=>({...f, modalidad:m}))} />{m}</label>))}</div></div>
-                <div className="form-group form-grid-full"><label className="form-label">Zonas</label><div className="form-check-group">{ZONAS.map(z => (<label key={z} className="form-check"><input type="checkbox" checked={(editForm.zona||[]).includes(z)} onChange={() => setEditForm(f=>({...f, zona: (f.zona||[]).includes(z) ? f.zona.filter(x=>x!==z) : [...(f.zona||[]), z]}))} />{z}</label>))}</div></div>
-                <div className="form-group form-grid-full"><label className="form-label">Especialidades</label><div className="form-check-group">{ESPECIALIDADES.map(e => (<label key={e} className="form-check"><input type="checkbox" checked={(editForm.especialidades||[]).includes(e)} onChange={() => setEditForm(f=>({...f, especialidades: (f.especialidades||[]).includes(e) ? f.especialidades.filter(x=>x!==e) : [...(f.especialidades||[]), e]}))} />{e}</label>))}</div></div>
+                <div className="form-group form-grid-full"><label className="form-label">Zonas</label><div className="form-check-group">{ZONAS.map(z => (<label key={z} className="form-check"><input type="checkbox" checked={(editForm.zona||[]).includes(z)} onChange={() => setEditForm(f=>({...f, zona:(f.zona||[]).includes(z)?f.zona.filter(x=>x!==z):[...(f.zona||[]),z]}))} />{z}</label>))}</div></div>
+                <div className="form-group form-grid-full"><label className="form-label">Especialidades</label><div className="form-check-group">{ESPECIALIDADES.map(e => (<label key={e} className="form-check"><input type="checkbox" checked={(editForm.especialidades||[]).includes(e)} onChange={() => setEditForm(f=>({...f, especialidades:(f.especialidades||[]).includes(e)?f.especialidades.filter(x=>x!==e):[...(f.especialidades||[]),e]}))} />{e}</label>))}</div></div>
               </div>
               <div style={{display:"flex", gap:"10px", marginTop:"20px"}}>
                 <button className="form-submit" style={{marginTop:0}} onClick={handleSaveEdit}>Guardar cambios</button>
-                <button className="form-submit" style={{marginTop:0, background:"var(--border)", color:"var(--text)"}} onClick={() => setEditingTrainer(null)}>Cancelar</button>
+                <button className="form-submit" style={{marginTop:0, background:"#F3F4F6", color:"var(--text)"}} onClick={() => setEditingTrainer(null)}>Cancelar</button>
               </div>
             </div>
           </div>
@@ -618,9 +498,8 @@ export default function App() {
   const pages = {
     home: <HomePage setPage={setPage} />,
     buscar: <BuscarPage token={session?.access_token} />,
-    match: <MatchPage token={session?.access_token} />,
     "registro-entrenador": <RegisterPage type="entrenador" />,
-    "registro-cliente": <RegisterPage type="cliente" />,
+    "quiero-entrenar": <RegisterPage type="cliente" />,
     admin: isAdmin ? <AdminPage token={session?.access_token} /> : <HomePage setPage={setPage} />,
   };
   return (
@@ -630,11 +509,10 @@ export default function App() {
         <div className="nav-logo" onClick={() => setPage("home")}>Trainer<span>Hub</span></div>
         <div className="nav-links">
           <button className="nav-btn nav-btn-ghost" onClick={() => setPage("buscar")}>Buscar</button>
-          <button className="nav-btn nav-btn-ghost" onClick={() => setPage("match")}>Mi Match</button>
           <button className="nav-btn nav-btn-ghost" onClick={() => setPage("registro-entrenador")}>Soy Entrenador</button>
           {!session ? (<>
             <button className="nav-btn nav-btn-ghost" onClick={() => setShowLogin(true)}>Entrar</button>
-            <button className="nav-btn nav-btn-primary" onClick={() => setPage("registro-cliente")}>Soy Cliente</button>
+            <button className="nav-btn nav-btn-primary" onClick={() => setPage("quiero-entrenar")}>Quiero Entrenar</button>
           </>) : (<>
             {isAdmin && <button className="nav-btn nav-btn-ghost" onClick={() => setPage("admin")}>⚙ Admin</button>}
             <button className="nav-btn nav-btn-ghost" onClick={handleLogout}>Salir</button>
