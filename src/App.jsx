@@ -25,7 +25,7 @@ async function sbFetch(path, options = {}) {
 async function uploadFoto(file) {
   const ext = file.name.split('.').pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/fotos/${fileName}`, {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/Fotos/${fileName}`, {
     method: "POST",
     headers: {
       apikey: SUPABASE_KEY,
@@ -35,7 +35,7 @@ async function uploadFoto(file) {
     body: file,
   });
   if (!res.ok) throw new Error("Error subiendo foto");
-  return `${SUPABASE_URL}/storage/v1/object/public/fotos/${fileName}`;
+  return `${SUPABASE_URL}/storage/v1/object/public/Fotos/${fileName}`;
 }
 
 async function getEntrenadores(token) {
