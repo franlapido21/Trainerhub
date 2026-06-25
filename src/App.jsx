@@ -22,6 +22,22 @@ async function sbFetch(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+async function uploadFoto(file) {
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/fotos/${fileName}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": file.type,
+    },
+    body: file,
+  });
+  if (!res.ok) throw new Error("Error subiendo foto");
+  return `${SUPABASE_URL}/storage/v1/object/public/fotos/${fileName}`;
+}
+
 async function getEntrenadores(token) {
   return sbFetch("/rest/v1/entrenadores?select=*&estado=eq.aprobado&order=created_at.desc", { token });
 }
@@ -173,6 +189,9 @@ const css = `
   .form-submit { width: 100%; padding: 14px; border-radius: 10px; background: var(--orange); color: white; font-size: 16px; font-weight: 700; cursor: pointer; border: none; font-family: 'Inter', sans-serif; margin-top: 24px; transition: background 0.15s; }
   .form-submit:hover { background: #d44e17; }
   .form-submit:disabled { background: #D1D5DB; cursor: not-allowed; }
+  .foto-upload { border: 2px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.15s; background: #F9FAFB; }
+  .foto-upload:hover { border-color: var(--orange); background: var(--orange-dim); }
+  .foto-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; display: block; border: 3px solid var(--orange); }
   .empty { text-align: center; padding: 80px 20px; color: var(--gray); }
   .empty-icon { font-size: 48px; margin-bottom: 16px; }
   .empty-title { font-size: 20px; font-weight: 700; color: var(--lgray); margin-bottom: 8px; }
@@ -188,6 +207,37 @@ const css = `
   @keyframes spin { to { transform: rotate(360deg); } }
   @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .hero-title { font-size: 42px; letter-spacing: -2px; } .nav { padding: 0 16px; } .form-card { padding: 24px; } .steps { grid-template-columns: 1fr; } .why-grid { grid-template-columns: 1fr; } }
 `;
+
+function FotoUpload({ value, onChange }) {
+  const [preview, setPreview] = useState(value || null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadFoto(file);
+      setPreview(url);
+      onChange(url);
+    } catch (e) {
+      alert("Error subiendo la foto. Intentá de nuevo.");
+    }
+    setUploading(false);
+  };
+
+  return (
+    <div className="foto-upload" onClick={() => document.getElementById('foto-input').click()}>
+      <input id="foto-input" type="file" accept="image/*" style={{display:"none"}} onChange={e => handleFile(e.target.files[0])} />
+      {uploading ? (
+        <div><div className="spinner" style={{margin:"0 auto"}}></div><p style={{marginTop:"8px", fontSize:"13px", color:"var(--gray)"}}>Subiendo...</p></div>
+      ) : preview ? (
+        <div><img src={preview} className="foto-preview" alt="preview" /><p style={{fontSize:"13px", color:"var(--orange)", fontWeight:"600"}}>✓ Foto subida · Click para cambiar</p></div>
+      ) : (
+        <div><div style={{fontSize:"32px", marginBottom:"8px"}}>📷</div><p style={{fontSize:"14px", fontWeight:"600", color:"var(--lgray)"}}>Subir foto de perfil</p><p style={{fontSize:"12px", color:"var(--gray)", marginTop:"4px"}}>Click para seleccionar desde tu dispositivo</p></div>
+      )}
+    </div>
+  );
+}
 
 function TrainerCard({ trainer, onClick }) {
   const initial = trainer.nombre.charAt(0).toUpperCase();
@@ -257,61 +307,30 @@ function HomePage({ setPage }) {
           <button className="btn-lg btn-outline" onClick={() => setPage("registro-entrenador")}>Soy Entrenador</button>
         </div>
       </div>
-
       <div className="how-section">
         <div className="how-inner">
           <div className="section-tag">Cómo funciona</div>
           <h2 className="section-title">Simple, rápido y <span>efectivo</span></h2>
           <p className="section-sub">En tres pasos encontrás el entrenador que necesitás o te sumás al equipo como profesional.</p>
           <div className="steps">
-            <div className="step">
-              <div className="step-num">1</div>
-              <div className="step-title">Explorá los perfiles</div>
-              <div className="step-desc">Filtrá por zona, especialidad, modalidad y encontrá entrenadores que se ajusten a lo que buscás.</div>
-            </div>
-            <div className="step">
-              <div className="step-num">2</div>
-              <div className="step-title">Contactá directo</div>
-              <div className="step-desc">Escribile por WhatsApp al entrenador que te interesa. Sin intermediarios, sin comisiones ocultas.</div>
-            </div>
-            <div className="step">
-              <div className="step-num">3</div>
-              <div className="step-title">Empezá a entrenar</div>
-              <div className="step-desc">Coordiná tu primera sesión y comenzá tu camino hacia tus objetivos con un profesional verificado.</div>
-            </div>
+            <div className="step"><div className="step-num">1</div><div className="step-title">Explorá los perfiles</div><div className="step-desc">Filtrá por zona, especialidad, modalidad y encontrá entrenadores que se ajusten a lo que buscás.</div></div>
+            <div className="step"><div className="step-num">2</div><div className="step-title">Contactá directo</div><div className="step-desc">Escribile por WhatsApp al entrenador que te interesa. Sin intermediarios, sin comisiones ocultas.</div></div>
+            <div className="step"><div className="step-num">3</div><div className="step-title">Empezá a entrenar</div><div className="step-desc">Coordiná tu primera sesión y comenzá tu camino hacia tus objetivos con un profesional verificado.</div></div>
           </div>
         </div>
       </div>
-
       <div className="why-section">
         <div className="why-inner">
           <div className="section-tag" style={{color:"var(--orange)"}}>Por qué TrainerHub</div>
           <h2 className="section-title" style={{color:"white"}}>No somos un buscador.<br />Somos una <span>agencia.</span></h2>
           <div className="why-grid">
-            <div className="why-card">
-              <div className="why-icon">✅</div>
-              <div className="why-title">Verificación personal</div>
-              <div className="why-desc">Cada entrenador pasa por una entrevista personal antes de aparecer en la plataforma.</div>
-            </div>
-            <div className="why-card">
-              <div className="why-icon">🎯</div>
-              <div className="why-title">Perfiles reales</div>
-              <div className="why-desc">Todos los datos, especialidades y zonas son revisados y actualizados por el equipo TrainerHub.</div>
-            </div>
-            <div className="why-card">
-              <div className="why-icon">💬</div>
-              <div className="why-title">Contacto directo</div>
-              <div className="why-desc">Te conectamos directo con el entrenador por WhatsApp. Sin formularios, sin demoras.</div>
-            </div>
-            <div className="why-card">
-              <div className="why-icon">🇺🇾</div>
-              <div className="why-title">100% uruguayo</div>
-              <div className="why-desc">Pensado para Uruguay, con entrenadores de Montevideo y el interior del país.</div>
-            </div>
+            <div className="why-card"><div className="why-icon">✅</div><div className="why-title">Verificación personal</div><div className="why-desc">Cada entrenador pasa por una entrevista personal antes de aparecer en la plataforma.</div></div>
+            <div className="why-card"><div className="why-icon">🎯</div><div className="why-title">Perfiles reales</div><div className="why-desc">Todos los datos, especialidades y zonas son revisados y actualizados por el equipo TrainerHub.</div></div>
+            <div className="why-card"><div className="why-icon">💬</div><div className="why-title">Contacto directo</div><div className="why-desc">Te conectamos directo con el entrenador por WhatsApp. Sin formularios, sin demoras.</div></div>
+            <div className="why-card"><div className="why-icon">🇺🇾</div><div className="why-title">100% uruguayo</div><div className="why-desc">Pensado para Uruguay, con entrenadores de Montevideo y el interior del país.</div></div>
           </div>
         </div>
       </div>
-
       <div className="cta-section">
         <div className="cta-inner">
           <div className="section-tag">Sumate</div>
@@ -329,7 +348,7 @@ function BuscarPage({ token }) {
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
-  const [filters, setFilters] = useState({ zona: "", especialidad: "", modalidad: "", precio: "" });
+  const [filters, setFilters] = useState({ zona: "", especialidad: "", modalidad: "" });
   useEffect(() => {
     getEntrenadores(token).then(data => { const d = data || []; setTrainers(d); setFiltered(d); }).catch(console.error).finally(() => setLoading(false));
   }, [token]);
@@ -338,7 +357,6 @@ function BuscarPage({ token }) {
     if (filters.zona) result = result.filter(t => Array.isArray(t.zona) ? t.zona.includes(filters.zona) : t.zona === filters.zona);
     if (filters.especialidad) result = result.filter(t => t.especialidades.includes(filters.especialidad));
     if (filters.modalidad) result = result.filter(t => t.modalidad === filters.modalidad || t.modalidad === "Ambos");
-    if (filters.precio) result = result.filter(t => t.precio <= parseInt(filters.precio));
     setFiltered(result);
   }, [filters, trainers]);
   const setFilter = (key, val) => setFilters(f => ({...f, [key]: val}));
@@ -352,7 +370,6 @@ function BuscarPage({ token }) {
         <div className="filter-group"><label className="filter-label">Zona</label><select className="filter-select" value={filters.zona} onChange={e => setFilter("zona", e.target.value)}><option value="">Todas las zonas</option>{ZONAS.map(z => <option key={z} value={z}>{z}</option>)}</select></div>
         <div className="filter-group"><label className="filter-label">Especialidad</label><select className="filter-select" value={filters.especialidad} onChange={e => setFilter("especialidad", e.target.value)}><option value="">Todas</option>{ESPECIALIDADES.map(e => <option key={e} value={e}>{e}</option>)}</select></div>
         <div className="filter-group"><label className="filter-label">Modalidad</label><select className="filter-select" value={filters.modalidad} onChange={e => setFilter("modalidad", e.target.value)}><option value="">Todas</option>{MODALIDADES.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
-        <div className="filter-group"><label className="filter-label">Precio máx ($/h)</label><input className="filter-input" type="number" placeholder="Sin límite" value={filters.precio} onChange={e => setFilter("precio", e.target.value)} /></div>
       </div>
       {loading ? <div className="loading"><div className="spinner"></div></div> : filtered.length === 0 ? (
         <div className="empty"><div className="empty-icon">🔍</div><div className="empty-title">No encontramos entrenadores con esos filtros</div><p>Probá ajustando los criterios de búsqueda</p></div>
@@ -366,7 +383,7 @@ function BuscarPage({ token }) {
 
 function RegisterPage({ type }) {
   const isTrainer = type === "entrenador";
-  const [form, setForm] = useState({ nombre: "", edad: "", bio: "", experiencia: "", zonas: [], especialidades: [], modalidad: "", precio: "", whatsapp: "", instagram: "", objetivo: "", otroEspecialidad: "", condicionMedica: "", pais: "Uruguay" });
+  const [form, setForm] = useState({ nombre: "", edad: "", bio: "", experiencia: "", zonas: [], especialidades: [], modalidad: "", precio: "", whatsapp: "", instagram: "", objetivo: "", otroEspecialidad: "", condicionMedica: "", pais: "Uruguay", foto_url: "" });
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const setField = (k, v) => setForm(f => ({...f, [k]: v}));
@@ -379,27 +396,10 @@ function RegisterPage({ type }) {
       const especialidadesFinales = isTrainer
         ? form.especialidades.map(e => e === "Otro" && form.otroEspecialidad ? form.otroEspecialidad : e)
         : [form.objetivo === "Otro" && form.otroEspecialidad ? form.otroEspecialidad : form.objetivo];
-
       if (isTrainer) {
-        await insertEntrenador({
-          nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null,
-          bio: form.bio, experiencia: form.experiencia ? parseInt(form.experiencia) : 1,
-          zona: isOnline ? [] : form.zonas,
-          especialidades: especialidadesFinales,
-          modalidad: form.modalidad,
-          precio: form.precio ? parseInt(form.precio) : null,
-          whatsapp: form.whatsapp, instagram: form.instagram,
-          estado: "pendiente", verificado: false
-        });
+        await insertEntrenador({ nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null, bio: form.bio, experiencia: form.experiencia ? parseInt(form.experiencia) : 1, zona: isOnline ? [] : form.zonas, especialidades: especialidadesFinales, modalidad: form.modalidad, precio: form.precio ? parseInt(form.precio) : null, whatsapp: form.whatsapp, instagram: form.instagram, foto_url: form.foto_url || null, estado: "pendiente", verificado: false });
       } else {
-        await insertCliente({
-          nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null,
-          modalidad: form.modalidad,
-          zona: isOnline ? null : (form.zonas[0] || null),
-          pais: isOnline ? form.pais : "Uruguay",
-          objetivo: form.objetivo === "Otro" && form.otroEspecialidad ? form.otroEspecialidad : form.objetivo,
-          condicion_medica: form.condicionMedica || null,
-        });
+        await insertCliente({ nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null, modalidad: form.modalidad, zona: isOnline ? null : (form.zonas[0] || null), pais: isOnline ? form.pais : "Uruguay", objetivo: form.objetivo === "Otro" && form.otroEspecialidad ? form.otroEspecialidad : form.objetivo, condicion_medica: form.condicionMedica || null });
       }
       setStatus("success");
     } catch (e) { console.error(e); setStatus("error"); }
@@ -417,6 +417,7 @@ function RegisterPage({ type }) {
           <div className="form-group"><label className="form-label">Nombre completo *</label><input className="form-input" placeholder="Tu nombre" value={form.nombre} onChange={e => setField("nombre", e.target.value)} /></div>
           <div className="form-group"><label className="form-label">Edad</label><input className="form-input" type="number" placeholder="Años" value={form.edad} onChange={e => setField("edad", e.target.value)} /></div>
           {isTrainer && (<>
+            <div className="form-group form-grid-full"><label className="form-label">Foto de perfil</label><FotoUpload value={form.foto_url} onChange={v => setField("foto_url", v)} /></div>
             <div className="form-group form-grid-full"><label className="form-label">Bio / Descripción</label><textarea className="form-textarea" placeholder="Contanos sobre vos, tu experiencia y tu enfoque..." value={form.bio} onChange={e => setField("bio", e.target.value)} /></div>
             <div className="form-group"><label className="form-label">Años de experiencia</label><input className="form-input" type="number" placeholder="1" value={form.experiencia} onChange={e => setField("experiencia", e.target.value)} /></div>
             <div className="form-group"><label className="form-label">Precio por hora ($UY)</label><input className="form-input" type="number" placeholder="1500" value={form.precio} onChange={e => setField("precio", e.target.value)} /></div>
@@ -424,24 +425,11 @@ function RegisterPage({ type }) {
             <div className="form-group"><label className="form-label">Instagram</label><input className="form-input" placeholder="@usuario" value={form.instagram} onChange={e => setField("instagram", e.target.value)} /></div>
           </>)}
           <div className="form-group form-grid-full"><label className="form-label">Modalidad *</label><div className="form-check-group">{MODALIDADES.map(m => (<label key={m} className="form-check"><input type="radio" name="modalidad" value={m} checked={form.modalidad === m} onChange={() => setField("modalidad", m)} />{m}</label>))}</div></div>
-
-          {!isOnline && (
-            <div className="form-group form-grid-full"><label className="form-label">{isTrainer ? "Zonas de trabajo" : "Tu zona"}</label><div className="form-check-group">{ZONAS.map(z => (<label key={z} className="form-check"><input type={isTrainer ? "checkbox" : "radio"} name="zona" checked={isTrainer ? form.zonas.includes(z) : form.zonas[0] === z} onChange={() => isTrainer ? toggleArray("zonas", z) : setField("zonas", [z])} />{z}</label>))}</div></div>
-          )}
-
-          {isOnline && !isTrainer && (
-            <div className="form-group form-grid-full"><label className="form-label">País</label><input className="form-input" placeholder="Uruguay" value={form.pais} onChange={e => setField("pais", e.target.value)} /></div>
-          )}
-
+          {!isOnline && (<div className="form-group form-grid-full"><label className="form-label">{isTrainer ? "Zonas de trabajo" : "Tu zona"}</label><div className="form-check-group">{ZONAS.map(z => (<label key={z} className="form-check"><input type={isTrainer ? "checkbox" : "radio"} name="zona" checked={isTrainer ? form.zonas.includes(z) : form.zonas[0] === z} onChange={() => isTrainer ? toggleArray("zonas", z) : setField("zonas", [z])} />{z}</label>))}</div></div>)}
+          {isOnline && !isTrainer && (<div className="form-group form-grid-full"><label className="form-label">País</label><input className="form-input" placeholder="Uruguay" value={form.pais} onChange={e => setField("pais", e.target.value)} /></div>)}
           <div className="form-group form-grid-full"><label className="form-label">{isTrainer ? "Especialidades *" : "Tu objetivo *"}</label><div className="form-check-group">{ESPECIALIDADES.map(e => (<label key={e} className="form-check"><input type={isTrainer ? "checkbox" : "radio"} name="objetivo" checked={isTrainer ? form.especialidades.includes(e) : form.objetivo === e} onChange={() => isTrainer ? toggleArray("especialidades", e) : setField("objetivo", e)} />{e}</label>))}</div></div>
-
-          {((isTrainer && form.especialidades.includes("Otro")) || (!isTrainer && form.objetivo === "Otro")) && (
-            <div className="form-group form-grid-full"><label className="form-label">¿Cuál es tu especialidad?</label><input className="form-input" placeholder="Describí tu especialidad..." value={form.otroEspecialidad} onChange={e => setField("otroEspecialidad", e.target.value)} /></div>
-          )}
-
-          {!isTrainer && (
-            <div className="form-group form-grid-full"><label className="form-label">Condición médica o lesiones a tener en cuenta</label><textarea className="form-textarea" style={{minHeight:"80px"}} placeholder="Ej: hernia de disco, rodilla operada, hipertensión... (opcional)" value={form.condicionMedica} onChange={e => setField("condicionMedica", e.target.value)} /></div>
-          )}
+          {((isTrainer && form.especialidades.includes("Otro")) || (!isTrainer && form.objetivo === "Otro")) && (<div className="form-group form-grid-full"><label className="form-label">¿Cuál especialidad?</label><input className="form-input" placeholder="Describí tu especialidad..." value={form.otroEspecialidad} onChange={e => setField("otroEspecialidad", e.target.value)} /></div>)}
+          {!isTrainer && (<div className="form-group form-grid-full"><label className="form-label">Condición médica o lesiones a tener en cuenta</label><textarea className="form-textarea" style={{minHeight:"80px"}} placeholder="Ej: hernia de disco, rodilla operada, hipertensión... (opcional)" value={form.condicionMedica} onChange={e => setField("condicionMedica", e.target.value)} /></div>)}
         </div>
         <button className="form-submit" onClick={handleSubmit} disabled={loading || !form.nombre || !form.modalidad}>{loading ? "Enviando..." : isTrainer ? "Enviar solicitud →" : "Encontrar mi entrenador →"}</button>
       </div>
@@ -455,7 +443,6 @@ function AdminPage({ token }) {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingPhoto, setEditingPhoto] = useState(null);
-  const [photoUrl, setPhotoUrl] = useState("");
   const [editingTrainer, setEditingTrainer] = useState(null);
   const [editForm, setEditForm] = useState({});
   useEffect(() => {
@@ -469,7 +456,6 @@ function AdminPage({ token }) {
       setTrainers(prev => prev.map(t => t.id === id ? { ...t, ...data } : t));
     } catch (e) { alert("Error: " + e.message); }
   };
-  const handleSavePhoto = async (id) => { await handleUpdate(id, { foto_url: photoUrl }); setEditingPhoto(null); setPhotoUrl(""); };
   const handleSaveEdit = async () => {
     await handleUpdate(editingTrainer.id, { nombre: editForm.nombre, bio: editForm.bio, edad: parseInt(editForm.edad), experiencia: parseInt(editForm.experiencia), zona: editForm.zona, especialidades: editForm.especialidades, modalidad: editForm.modalidad, precio: parseInt(editForm.precio), whatsapp: editForm.whatsapp, instagram: editForm.instagram });
     setEditingTrainer(null);
@@ -518,17 +504,16 @@ function AdminPage({ token }) {
                   </div>
                   <div style={{display:"flex", alignItems:"center", gap:"6px", flexWrap:"wrap", justifyContent:"flex-end"}}>
                     <span style={{padding:"3px 10px", borderRadius:"20px", fontSize:"11px", fontWeight:"600", background:t.estado==="aprobado"?"rgba(15,110,86,0.1)":t.estado==="rechazado"?"rgba(220,38,38,0.1)":"rgba(245,158,11,0.1)", color:t.estado==="aprobado"?"var(--green)":t.estado==="rechazado"?"#B91C1C":"#92400E"}}>{t.estado}</span>
-                    <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => { setEditingPhoto(t.id); setPhotoUrl(t.foto_url || ""); }}>📷 Foto</button>
+                    <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => { setEditingPhoto(t.id); }}>📷 Foto</button>
                     <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => { setEditingTrainer(t); setEditForm({...t}); }}>✏️ Editar</button>
                     {t.estado !== "aprobado" && <button className="card-btn card-btn-primary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => handleUpdate(t.id, {estado:"aprobado", verificado:true})}>Aprobar</button>}
                     <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none", color:"#B91C1C", borderColor:"rgba(220,38,38,0.3)"}} onClick={() => handleUpdate(t.id, {estado:"rechazado", verificado:false})}>Rechazar</button>
                   </div>
                 </div>
                 {editingPhoto === t.id && (
-                  <div style={{marginTop:"12px", padding:"12px", background:"white", borderRadius:"8px", border:"1px solid var(--border)", display:"flex", gap:"8px", alignItems:"center"}}>
-                    <input className="form-input" style={{flex:1, margin:0}} placeholder="URL de la foto (https://...)" value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} />
-                    <button className="card-btn card-btn-primary" style={{width:"auto", flex:"none", padding:"10px 16px"}} onClick={() => handleSavePhoto(t.id)}>Guardar</button>
-                    <button className="card-btn card-btn-secondary" style={{width:"auto", flex:"none", padding:"10px 16px"}} onClick={() => setEditingPhoto(null)}>Cancelar</button>
+                  <div style={{marginTop:"12px", padding:"12px", background:"white", borderRadius:"8px", border:"1px solid var(--border)"}}>
+                    <FotoUpload value={t.foto_url} onChange={url => { handleUpdate(t.id, {foto_url: url}); setEditingPhoto(null); }} />
+                    <button className="card-btn card-btn-secondary" style={{width:"auto", flex:"none", padding:"8px 16px", marginTop:"8px"}} onClick={() => setEditingPhoto(null)}>Cancelar</button>
                   </div>
                 )}
               </div>
