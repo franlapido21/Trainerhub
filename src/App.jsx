@@ -36,13 +36,13 @@ async function signUp(email, password) {
 async function uploadFoto(file) {
   const ext = file.name.split('.').pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/Fotos/${fileName}`, {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/fotos/${fileName}`, {
     method: "POST",
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": file.type },
     body: file,
   });
   if (!res.ok) throw new Error("Error subiendo foto");
-  return `${SUPABASE_URL}/storage/v1/object/public/Fotos/${fileName}`;
+  return `${SUPABASE_URL}/storage/v1/object/public/fotos/${fileName}`;
 }
 
 async function getEntrenadores(token) {
