@@ -22,16 +22,23 @@ async function sbFetch(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+async function signUp(email, password) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.msg || data.message || "Error al registrarse");
+  return data;
+}
+
 async function uploadFoto(file) {
   const ext = file.name.split('.').pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/Fotos/${fileName}`, {
     method: "POST",
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      "Content-Type": file.type,
-    },
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": file.type },
     body: file,
   });
   if (!res.ok) throw new Error("Error subiendo foto");
@@ -50,11 +57,19 @@ async function getClientes(token) {
 async function updateEntrenador(id, data, token) {
   return sbFetch(`/rest/v1/entrenadores?id=eq.${id}`, { method: "PATCH", body: data, token });
 }
-async function insertEntrenador(data) {
-  return sbFetch("/rest/v1/entrenadores", { method: "POST", body: data });
+async function insertEntrenador(data, token) {
+  return sbFetch("/rest/v1/entrenadores", { method: "POST", body: data, token });
 }
-async function insertCliente(data) {
-  return sbFetch("/rest/v1/clientes", { method: "POST", body: data });
+async function insertCliente(data, token) {
+  return sbFetch("/rest/v1/clientes", { method: "POST", body: data, token });
+}
+async function getMyEntrenador(userId, token) {
+  const data = await sbFetch(`/rest/v1/entrenadores?user_id=eq.${userId}&select=*`, { token });
+  return data && data.length > 0 ? data[0] : null;
+}
+async function getMyCliente(userId, token) {
+  const data = await sbFetch(`/rest/v1/clientes?user_id=eq.${userId}&select=*`, { token });
+  return data && data.length > 0 ? data[0] : null;
 }
 async function signIn(email, password) {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
@@ -205,13 +220,20 @@ const css = `
   .loading { display: flex; align-items: center; justify-content: center; padding: 60px; }
   .spinner { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--orange); animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .dashboard { padding: 80px 24px 40px; max-width: 800px; margin: 0 auto; }
+  .dashboard-card { background: white; border: 1.5px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .dashboard-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .dashboard-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: white; overflow: hidden; flex-shrink: 0; }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .status-pendiente { background: rgba(245,158,11,0.1); color: #92400E; border: 1px solid rgba(245,158,11,0.3); }
+  .status-aprobado { background: var(--green-dim); color: var(--green); border: 1px solid rgba(15,110,86,0.3); }
+  .status-rechazado { background: rgba(220,38,38,0.1); color: #B91C1C; border: 1px solid rgba(220,38,38,0.3); }
   @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .hero-title { font-size: 42px; letter-spacing: -2px; } .nav { padding: 0 16px; } .form-card { padding: 24px; } .steps { grid-template-columns: 1fr; } .why-grid { grid-template-columns: 1fr; } }
 `;
 
 function FotoUpload({ value, onChange }) {
   const [preview, setPreview] = useState(value || null);
   const [uploading, setUploading] = useState(false);
-
   const handleFile = async (file) => {
     if (!file) return;
     setUploading(true);
@@ -219,12 +241,9 @@ function FotoUpload({ value, onChange }) {
       const url = await uploadFoto(file);
       setPreview(url);
       onChange(url);
-    } catch (e) {
-      alert("Error subiendo la foto. Intentá de nuevo.");
-    }
+    } catch (e) { alert("Error subiendo la foto. Intentá de nuevo."); }
     setUploading(false);
   };
-
   return (
     <div className="foto-upload" onClick={() => document.getElementById('foto-input').click()}>
       <input id="foto-input" type="file" accept="image/*" style={{display:"none"}} onChange={e => handleFile(e.target.files[0])} />
@@ -381,9 +400,9 @@ function BuscarPage({ token }) {
   );
 }
 
-function RegisterPage({ type }) {
+function RegisterPage({ type, onLogin }) {
   const isTrainer = type === "entrenador";
-  const [form, setForm] = useState({ nombre: "", edad: "", bio: "", experiencia: "", zonas: [], especialidades: [], modalidad: "", precio: "", whatsapp: "", instagram: "", objetivo: "", otroEspecialidad: "", condicionMedica: "", pais: "Uruguay", foto_url: "" });
+  const [form, setForm] = useState({ nombre: "", email: "", password: "", edad: "", bio: "", experiencia: "", zonas: [], especialidades: [], modalidad: "", precio: "", whatsapp: "", instagram: "", objetivo: "", otroEspecialidad: "", condicionMedica: "", pais: "Uruguay", foto_url: "" });
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const setField = (k, v) => setForm(f => ({...f, [k]: v}));
@@ -391,18 +410,28 @@ function RegisterPage({ type }) {
   const isOnline = form.modalidad === "Online";
 
   const handleSubmit = async () => {
+    if (!form.email || !form.password) { alert("Email y contraseña son obligatorios"); return; }
+    if (form.password.length < 6) { alert("La contraseña debe tener al menos 6 caracteres"); return; }
     setLoading(true);
     try {
+      const authData = await signUp(form.email, form.password);
+      const userId = authData.user?.id;
+      const token = authData.access_token;
       const especialidadesFinales = isTrainer
         ? form.especialidades.map(e => e === "Otro" && form.otroEspecialidad ? form.otroEspecialidad : e)
         : [form.objetivo === "Otro" && form.otroEspecialidad ? form.otroEspecialidad : form.objetivo];
       if (isTrainer) {
-        await insertEntrenador({ nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null, bio: form.bio, experiencia: form.experiencia ? parseInt(form.experiencia) : 1, zona: isOnline ? [] : form.zonas, especialidades: especialidadesFinales, modalidad: form.modalidad, precio: form.precio ? parseInt(form.precio) : null, whatsapp: form.whatsapp, instagram: form.instagram, foto_url: form.foto_url || null, estado: "pendiente", verificado: false });
+        await insertEntrenador({ nombre: form.nombre, email: form.email, edad: form.edad ? parseInt(form.edad) : null, bio: form.bio, experiencia: form.experiencia ? parseInt(form.experiencia) : 1, zona: isOnline ? [] : form.zonas, especialidades: especialidadesFinales, modalidad: form.modalidad, precio: form.precio ? parseInt(form.precio) : null, whatsapp: form.whatsapp, instagram: form.instagram, foto_url: form.foto_url || null, estado: "pendiente", verificado: false, user_id: userId }, token);
       } else {
-        await insertCliente({ nombre: form.nombre, edad: form.edad ? parseInt(form.edad) : null, modalidad: form.modalidad, zona: isOnline ? null : (form.zonas[0] || null), pais: isOnline ? form.pais : "Uruguay", objetivo: form.objetivo === "Otro" && form.otroEspecialidad ? form.otroEspecialidad : form.objetivo, condicion_medica: form.condicionMedica || null });
+        await insertCliente({ nombre: form.nombre, email: form.email, edad: form.edad ? parseInt(form.edad) : null, modalidad: form.modalidad, zona: isOnline ? null : (form.zonas[0] || null), pais: isOnline ? form.pais : "Uruguay", objetivo: especialidadesFinales[0], condicion_medica: form.condicionMedica || null, user_id: userId }, token);
       }
       setStatus("success");
-    } catch (e) { console.error(e); setStatus("error"); }
+      if (onLogin) onLogin(authData);
+    } catch (e) {
+      console.error(e);
+      const msg = e.message.includes("already registered") ? "Este email ya está registrado." : "Hubo un error. Intentá de nuevo.";
+      setStatus(msg);
+    }
     setLoading(false);
   };
 
@@ -412,10 +441,12 @@ function RegisterPage({ type }) {
         <h2 className="form-title">{isTrainer ? <>Registrate como <span>Entrenador</span></> : <>Quiero <span>Entrenar</span></>}</h2>
         <p className="form-sub">{isTrainer ? "Completá tu perfil para ser parte del equipo TrainerHub. Primeros 3 meses gratis." : "Completá tus datos y te conectamos con el entrenador ideal para vos."}</p>
         {status === "success" && <div className="alert alert-success">{isTrainer ? "¡Registro enviado! Fran te va a contactar pronto para la entrevista." : "¡Listo! En breve te contactamos con tu entrenador ideal."}</div>}
-        {status === "error" && <div className="alert alert-error">Hubo un error. Intentá de nuevo.</div>}
+        {status && status !== "success" && <div className="alert alert-error">{status}</div>}
         <div className="form-grid">
           <div className="form-group"><label className="form-label">Nombre completo *</label><input className="form-input" placeholder="Tu nombre" value={form.nombre} onChange={e => setField("nombre", e.target.value)} /></div>
           <div className="form-group"><label className="form-label">Edad</label><input className="form-input" type="number" placeholder="Años" value={form.edad} onChange={e => setField("edad", e.target.value)} /></div>
+          <div className="form-group"><label className="form-label">Email *</label><input className="form-input" type="email" placeholder="tu@email.com" value={form.email} onChange={e => setField("email", e.target.value)} /></div>
+          <div className="form-group"><label className="form-label">Contraseña *</label><input className="form-input" type="password" placeholder="Mínimo 6 caracteres" value={form.password} onChange={e => setField("password", e.target.value)} /></div>
           {isTrainer && (<>
             <div className="form-group form-grid-full"><label className="form-label">Foto de perfil</label><FotoUpload value={form.foto_url} onChange={v => setField("foto_url", v)} /></div>
             <div className="form-group form-grid-full"><label className="form-label">Bio / Descripción</label><textarea className="form-textarea" placeholder="Contanos sobre vos, tu experiencia y tu enfoque..." value={form.bio} onChange={e => setField("bio", e.target.value)} /></div>
@@ -431,7 +462,90 @@ function RegisterPage({ type }) {
           {((isTrainer && form.especialidades.includes("Otro")) || (!isTrainer && form.objetivo === "Otro")) && (<div className="form-group form-grid-full"><label className="form-label">¿Cuál especialidad?</label><input className="form-input" placeholder="Describí tu especialidad..." value={form.otroEspecialidad} onChange={e => setField("otroEspecialidad", e.target.value)} /></div>)}
           {!isTrainer && (<div className="form-group form-grid-full"><label className="form-label">Condición médica o lesiones a tener en cuenta</label><textarea className="form-textarea" style={{minHeight:"80px"}} placeholder="Ej: hernia de disco, rodilla operada, hipertensión... (opcional)" value={form.condicionMedica} onChange={e => setField("condicionMedica", e.target.value)} /></div>)}
         </div>
-        <button className="form-submit" onClick={handleSubmit} disabled={loading || !form.nombre || !form.modalidad}>{loading ? "Enviando..." : isTrainer ? "Enviar solicitud →" : "Encontrar mi entrenador →"}</button>
+        <button className="form-submit" onClick={handleSubmit} disabled={loading || !form.nombre || !form.modalidad || !form.email || !form.password}>{loading ? "Registrando..." : isTrainer ? "Enviar solicitud →" : "Encontrar mi entrenador →"}</button>
+      </div>
+    </div>
+  );
+}
+
+function TrainerDashboard({ session, setPage }) {
+  const [perfil, setPerfil] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    getMyEntrenador(session.user.id, session.access_token).then(data => setPerfil(data)).catch(console.error).finally(() => setLoading(false));
+  }, [session]);
+  if (loading) return <div className="loading"><div className="spinner"></div></div>;
+  if (!perfil) return (
+    <div className="dashboard">
+      <div className="dashboard-card">
+        <div className="empty"><div className="empty-icon">📋</div><div className="empty-title">No encontramos tu perfil</div><p>Registrate como entrenador para ver tu dashboard.</p></div>
+        <button className="form-submit" onClick={() => setPage("registro-entrenador")}>Registrarme como entrenador →</button>
+      </div>
+    </div>
+  );
+  return (
+    <div className="dashboard">
+      <div className="dashboard-card">
+        <div className="dashboard-header">
+          <div className="dashboard-avatar">{perfil.foto_url ? <img src={perfil.foto_url} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}} /> : perfil.nombre?.charAt(0)}</div>
+          <div>
+            <h2 style={{fontSize:"20px", fontWeight:"800", marginBottom:"6px"}}>{perfil.nombre}</h2>
+            <span className={`status-badge status-${perfil.estado}`}>
+              {perfil.estado === "pendiente" ? "⏳ Pendiente de aprobación" : perfil.estado === "aprobado" ? "✅ Perfil activo" : "❌ Rechazado"}
+            </span>
+          </div>
+        </div>
+        {perfil.estado === "pendiente" && <div className="alert alert-success" style={{marginBottom:0}}>Tu perfil está en revisión. Fran te va a contactar pronto para confirmar tu registro.</div>}
+        {perfil.estado === "aprobado" && (
+          <div>
+            <p style={{fontSize:"14px", color:"var(--gray)", marginBottom:"16px"}}>Tu perfil está visible en el buscador. Los clientes pueden contactarte por WhatsApp directamente.</p>
+            <button className="card-btn card-btn-primary" style={{width:"auto", padding:"10px 20px"}} onClick={() => setPage("buscar")}>Ver mi perfil en el buscador →</button>
+          </div>
+        )}
+        {perfil.estado === "rechazado" && <div className="alert alert-error" style={{marginBottom:0}}>Tu perfil fue rechazado. Contactá a Fran para más información.</div>}
+      </div>
+      <div className="dashboard-card">
+        <h3 style={{fontSize:"16px", fontWeight:"700", marginBottom:"16px"}}>Mis datos</h3>
+        <div style={{display:"flex", flexDirection:"column", gap:"10px"}}>
+          {[["Modalidad", perfil.modalidad], ["Zonas", Array.isArray(perfil.zona) ? perfil.zona.join(", ") : perfil.zona], ["Especialidades", Array.isArray(perfil.especialidades) ? perfil.especialidades.join(", ") : ""], ["Precio", `$${perfil.precio}/hora`], ["WhatsApp", perfil.whatsapp], ["Instagram", perfil.instagram]].map(([label, val]) => val ? (
+            <div key={label} style={{display:"flex", gap:"12px", padding:"10px 0", borderBottom:"1px solid var(--border)"}}>
+              <span style={{fontSize:"13px", color:"var(--gray)", minWidth:"100px"}}>{label}</span>
+              <span style={{fontSize:"13px", color:"var(--text)", fontWeight:"500"}}>{val}</span>
+            </div>
+          ) : null)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClienteDashboard({ session, setPage }) {
+  const [perfil, setPerfil] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    getMyCliente(session.user.id, session.access_token).then(data => setPerfil(data)).catch(console.error).finally(() => setLoading(false));
+  }, [session]);
+  if (loading) return <div className="loading"><div className="spinner"></div></div>;
+  if (!perfil) return (
+    <div className="dashboard">
+      <div className="dashboard-card">
+        <div className="empty"><div className="empty-icon">🏃</div><div className="empty-title">No encontramos tu perfil</div></div>
+        <button className="form-submit" onClick={() => setPage("quiero-entrenar")}>Registrarme →</button>
+      </div>
+    </div>
+  );
+  return (
+    <div className="dashboard">
+      <div className="dashboard-card">
+        <div className="dashboard-header">
+          <div className="dashboard-avatar">{perfil.nombre?.charAt(0)}</div>
+          <div>
+            <h2 style={{fontSize:"20px", fontWeight:"800", marginBottom:"6px"}}>{perfil.nombre}</h2>
+            <span style={{fontSize:"13px", color:"var(--gray)"}}>Objetivo: {perfil.objetivo}</span>
+          </div>
+        </div>
+        <p style={{fontSize:"14px", color:"var(--gray)", marginBottom:"16px"}}>Estamos buscando el entrenador ideal para vos. Te contactaremos pronto.</p>
+        <button className="card-btn card-btn-primary" style={{width:"auto", padding:"10px 20px"}} onClick={() => setPage("buscar")}>Explorar entrenadores →</button>
       </div>
     </div>
   );
@@ -468,10 +582,7 @@ function AdminPage({ token }) {
   });
   return (
     <div className="page">
-      <div className="page-header">
-        <h1 className="page-title">Panel <span>Admin</span></h1>
-        <p className="page-sub">Gestioná entrenadores y clientes registrados</p>
-      </div>
+      <div className="page-header"><h1 className="page-title">Panel <span>Admin</span></h1><p className="page-sub">Gestioná entrenadores y clientes registrados</p></div>
       <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"12px", marginBottom:"28px"}}>
         {[{label:"Pendientes", val:trainers.filter(t=>t.estado==="pendiente").length, color:"#F59E0B"},{label:"Aprobados", val:trainers.filter(t=>t.estado==="aprobado").length, color:"var(--green)"},{label:"Clientes", val:clients.length, color:"var(--orange)"}].map(s => (
           <div key={s.label} style={{background:"white", border:"1.5px solid var(--border)", borderRadius:"12px", padding:"20px"}}>
@@ -482,11 +593,7 @@ function AdminPage({ token }) {
       </div>
       <div style={{background:"white", border:"1.5px solid var(--border)", borderRadius:"16px", padding:"24px", marginBottom:"24px"}}>
         <h2 style={{fontSize:"16px", fontWeight:"700", marginBottom:"16px"}}>Entrenadores</h2>
-        <div className="tabs">
-          {["pendientes","aprobados","rechazados","todos"].map(t => (
-            <button key={t} className={"tab"+(tab===t?" active":"")} onClick={() => setTab(t)} style={{textTransform:"capitalize"}}>{t}</button>
-          ))}
-        </div>
+        <div className="tabs">{["pendientes","aprobados","rechazados","todos"].map(t => (<button key={t} className={"tab"+(tab===t?" active":"")} onClick={() => setTab(t)} style={{textTransform:"capitalize"}}>{t}</button>))}</div>
         {loading ? <div className="loading"><div className="spinner"></div></div> : filtered.length === 0 ? (
           <div className="empty"><div className="empty-icon">📋</div><div className="empty-title">Sin entrenadores en esta categoría</div></div>
         ) : (
@@ -499,12 +606,12 @@ function AdminPage({ token }) {
                   </div>
                   <div style={{flex:1}}>
                     <div style={{fontWeight:"700", fontSize:"15px"}}>{t.nombre}</div>
-                    <div style={{fontSize:"12px", color:"var(--gray)"}}>{t.modalidad} · {Array.isArray(t.zona) ? t.zona.slice(0,2).join(", ") : t.zona} · ${t.precio}/h</div>
+                    <div style={{fontSize:"12px", color:"var(--gray)"}}>{t.email} · {t.modalidad} · ${t.precio}/h</div>
                     <div style={{fontSize:"12px", color:"var(--gray)"}}>{t.whatsapp} · {t.instagram}</div>
                   </div>
                   <div style={{display:"flex", alignItems:"center", gap:"6px", flexWrap:"wrap", justifyContent:"flex-end"}}>
                     <span style={{padding:"3px 10px", borderRadius:"20px", fontSize:"11px", fontWeight:"600", background:t.estado==="aprobado"?"rgba(15,110,86,0.1)":t.estado==="rechazado"?"rgba(220,38,38,0.1)":"rgba(245,158,11,0.1)", color:t.estado==="aprobado"?"var(--green)":t.estado==="rechazado"?"#B91C1C":"#92400E"}}>{t.estado}</span>
-                    <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => { setEditingPhoto(t.id); }}>📷 Foto</button>
+                    <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => setEditingPhoto(t.id)}>📷 Foto</button>
                     <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => { setEditingTrainer(t); setEditForm({...t}); }}>✏️ Editar</button>
                     {t.estado !== "aprobado" && <button className="card-btn card-btn-primary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none"}} onClick={() => handleUpdate(t.id, {estado:"aprobado", verificado:true})}>Aprobar</button>}
                     <button className="card-btn card-btn-secondary" style={{padding:"6px 12px", fontSize:"11px", width:"auto", flex:"none", color:"#B91C1C", borderColor:"rgba(220,38,38,0.3)"}} onClick={() => handleUpdate(t.id, {estado:"rechazado", verificado:false})}>Rechazar</button>
@@ -530,7 +637,7 @@ function AdminPage({ token }) {
                 <div style={{width:"36px", height:"36px", borderRadius:"50%", background:"#1B2A4A", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:"700", color:"white", fontSize:"14px", flexShrink:0}}>{c.nombre?.charAt(0)}</div>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:"600", fontSize:"14px"}}>{c.nombre}</div>
-                  <div style={{fontSize:"12px", color:"var(--gray)"}}>{c.objetivo} · {c.zona || c.pais} · {c.modalidad}</div>
+                  <div style={{fontSize:"12px", color:"var(--gray)"}}>{c.email} · {c.objetivo} · {c.zona || c.pais} · {c.modalidad}</div>
                   {c.condicion_medica && <div style={{fontSize:"12px", color:"#B91C1C"}}>⚠️ {c.condicion_medica}</div>}
                 </div>
                 <div style={{fontSize:"12px", color:"var(--gray)"}}>{new Date(c.created_at).toLocaleDateString("es-UY")}</div>
@@ -602,15 +709,34 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const isAdmin = session?.user?.email === ADMIN_EMAIL;
-  const handleLogin = (data) => { setSession(data); setShowLogin(false); if (data?.user?.email === ADMIN_EMAIL) setPage("admin"); };
-  const handleLogout = async () => { if (session?.access_token) await signOut(session.access_token).catch(() => {}); setSession(null); setPage("home"); };
+
+  const handleLogin = (data) => {
+    setSession(data);
+    setShowLogin(false);
+    if (data?.user?.email === ADMIN_EMAIL) setPage("admin");
+    else setPage("dashboard");
+  };
+
+  const handleLogout = async () => {
+    if (session?.access_token) await signOut(session.access_token).catch(() => {});
+    setSession(null);
+    setPage("home");
+  };
+
+  const getDashboard = () => {
+    if (!session) return <HomePage setPage={setPage} />;
+    return <TrainerDashboard session={session} setPage={setPage} />;
+  };
+
   const pages = {
     home: <HomePage setPage={setPage} />,
     buscar: <BuscarPage token={session?.access_token} />,
-    "registro-entrenador": <RegisterPage type="entrenador" />,
-    "quiero-entrenar": <RegisterPage type="cliente" />,
+    "registro-entrenador": <RegisterPage type="entrenador" onLogin={handleLogin} />,
+    "quiero-entrenar": <RegisterPage type="cliente" onLogin={handleLogin} />,
+    dashboard: getDashboard(),
     admin: isAdmin ? <AdminPage token={session?.access_token} /> : <HomePage setPage={setPage} />,
   };
+
   return (
     <>
       <style>{css}</style>
@@ -624,6 +750,7 @@ export default function App() {
             <button className="nav-btn nav-btn-primary" onClick={() => setPage("quiero-entrenar")}>Quiero Entrenar</button>
           </>) : (<>
             {isAdmin && <button className="nav-btn nav-btn-ghost" onClick={() => setPage("admin")}>⚙ Admin</button>}
+            {!isAdmin && <button className="nav-btn nav-btn-ghost" onClick={() => setPage("dashboard")}>Mi perfil</button>}
             <button className="nav-btn nav-btn-ghost" onClick={handleLogout}>Salir</button>
           </>)}
         </div>
